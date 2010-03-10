@@ -1,3 +1,7 @@
+import sys
+import tty
+import socket
+import termios
 import threading
 
 class Input(threading.Thread):
@@ -10,27 +14,30 @@ class Input(threading.Thread):
         self.filter_callbacks.append(callback)
 
     def run(self):
+        tty.setraw(sys.stdin.fileno())
+
         while True:
             try:
-                # TODO: How do I properly hijack input.
-                input = sys.stdin.read(1)
+                ch = sys.stdin.read(1)
 
                 send_command = True
 
                 for callback in self.filter_callbacks:
-                    if callback(input) != True:
+                    if callback(ch) != True:
                         send_command = False
 
                 if send_command:
-                    self.conn.get_socket().send(input)
+                    self.conn.get_socket().send(ch)
             except socket.error, e:
                 break
+
 
 class Output(threading.Thread):
     """Otherwise known as: Pam's Gossip Train"""
 
     def __init__(self, conn):
         self.conn = conn
+        self.filter_callbacks = {}
         threading.Thread.__init__(self)
 
     def set_filter_callback(self, pattern, callback):
@@ -41,13 +48,13 @@ class Output(threading.Thread):
             try:
                 output = self.conn.read_very_eager()
 
-                for pattern, callback in self.filter_callbacks.value():
+                for pattern, callback in self.filter_callbacks.values():
                     if re.search(pattern, output) is not None:
                         callback(output)
 
                 sys.stdout.write(output)
                 sys.stdout.flush()
-            except socket.error, e:
+            except EOFError, e:
                 # Oh snap, forearm shiver to the gut, Pam
                 break
 

@@ -4,6 +4,14 @@ import telnetlib
 import threading
 
 class Telnet:
+    def open(self, host="nethack.alt.org", port=23):
+        self.conn = telnetlib.Telnet(host, port)
+        #self.conn.set_debuglevel(10)
+        self.conn.set_option_negotiation_callback(self.set_option)
+
+    def close(self):
+        self.conn.close()
+
     def set_option(self, socket, command, option):
         #print "got a command %r %r" % (command, option)
         if command == telnetlib.DO and option == "\x18":
@@ -34,10 +42,3 @@ class Telnet:
                          telnetlib.IAC,
                          telnetlib.SE))
 
-    def open(self, host="nethack.alt.org", port=23):
-        self.conn = telnetlib.Telnet(host, port)
-        #self.conn.set_debuglevel(10)
-        self.conn.set_option_negotiation_callback(self.set_option)
-
-    def close(self):
-        self.conn.close()
