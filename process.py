@@ -47,4 +47,10 @@ class Local:
         self.stdin.write(buf)
 
     def read(self):
-        return self.stdout.read(1)
+        buf = ""
+        while self.data_is_available(): 
+            buf += self.stdout.read(1)
+        return buf
+
+    def data_is_available(self):
+        return select.select([self.stdout], [], [], 0) == ([self.stdout], [], [])

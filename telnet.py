@@ -4,14 +4,18 @@ import telnetlib
 import threading
 
 class Telnet:
+    def __init__(self, host="nethack.alt.org", port=23):
+        self.host = host
+        self.port = port
+
     def write(self, buf):
         self.conn.get_socket().send(buf)
 
     def read(self):
         self.conn.read_very_eager()
 
-    def open(self, host="nethack.alt.org", port=23):
-        self.conn = telnetlib.Telnet(host, port)
+    def open(self):
+        self.conn = telnetlib.Telnet(self.host, self.port)
         #self.conn.set_debuglevel(10)
         self.conn.set_option_negotiation_callback(self.set_option)
 
