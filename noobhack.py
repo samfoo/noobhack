@@ -1,33 +1,40 @@
 import sys
 import tty
+import pdb
 import termios
+import select
 
 import telnet
+import process
 import proxy
 
 def main():
     try:
-        # Store off our terminal settings.
+        # Store off our terminal settings so we can restore them later.
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
 
-        t = telnet.Telnet()
-        t.open();
+        conn = process.Local()
+        conn.open();
 
-        # Start our input/output threads.
-        output = proxy.Output(t.conn)
-        input = proxy.Input(t.conn)
+        output, input = proxy.Output(conn), proxy.Input(conn)
 
-        output.start()
-        input.start()
+        while True:
+            reads = select.select([conn.fileno(), sys.stdin.fileno()], [], [])[0]
 
-        # Wait for the output thread to die
-        output.join()
+            if conn.fileno() in reads:
+                # Do our display logic.
+                output.proxy()
+
+            if sys.stdin.fileno() in reads:
+                # Do our input logic.
+                input.proxy()
+    except IOError:
+        # Nethack terminated or there was some problem communicating with it.
+        pass
     finally:
         # Make sure we restore the terminal settings to where they were.
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-
-    sys.exit(1)
 
 if __name__ == "__main__":
     # TODO: optparse

@@ -4,6 +4,12 @@ import telnetlib
 import threading
 
 class Telnet:
+    def write(self, buf):
+        self.conn.get_socket().send(buf)
+
+    def read(self):
+        self.conn.read_very_eager()
+
     def open(self, host="nethack.alt.org", port=23):
         self.conn = telnetlib.Telnet(host, port)
         #self.conn.set_debuglevel(10)
@@ -11,6 +17,9 @@ class Telnet:
 
     def close(self):
         self.conn.close()
+
+    def fileno(self):
+        return self.conn.get_socket().fileno()
 
     def set_option(self, socket, command, option):
         #print "got a command %r %r" % (command, option)
