@@ -8,24 +8,22 @@ import termios
 import telnet
 import process
 import proxy
-
-local = True
-host = ""
-port = 23
+import dungeon
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]
 Help: noobhack helps you ascend in nethack.
-\tBy default, it runs a copy of nethack locally, however it's possible to
-\tconnect to a remote telnet server and proxy a game.
+    By default, it runs a copy of nethack locally, however it's possible to
+    connect to a remote telnet server and proxy a game.
 Options:
-\t-l\t\tPlay a local game (default)
-\t-h\t\tHost to play a remote game on
-\t-p\t\tPort to connect to the remote host (default: 23)""")
+    -l      Play a local game (default)
+    -h      Host to play a remote game on
+    -p      Port to connect to the remote host (default: 23)""")
     sys.exit(1)
 
 def parse_options():
-    global local, host, port 
+    opts_dict = {"local": True}
+
     options, remaining = \
         getopt.getopt(sys.argv[1:], "lh:p:", [])
 
@@ -49,14 +47,14 @@ def parse_options():
         elif opt == "-p":
             port = val
 
-def connect_to_game():
-    global local, host, port 
+    return opts_dict 
 
+def connect_to_game(options):
     try:
-        if local:
+        if options.get("local", False):
             conn = process.Local()
         else:
-            conn = telnet.Telnet(host, port)
+            conn = telnet.Telnet(options["host"], options.get("port", 23))
         conn.open()
     except IOError, e:
         sys.stderr.write("Could not establish a connection to nethack: `%s'\n" % e)
@@ -64,19 +62,24 @@ def connect_to_game():
 
     return conn
 
-def begin_proxying(conn):
-    return (proxy.Output(conn), proxy.Input(conn))
+def load_or_create_dungeon():
+   return dungeon.load() or dungeon.Dungeon() 
+
+def begin_proxying(conn, dun):
+    return (proxy.Output(conn, dun), proxy.Input(conn, dun))
 
 def main():
-    parse_options()
+    options = parse_options()
 
     try:
         # Store off our terminal settings so we can restore them later.
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
 
-        conn = connect_to_game() 
-        output, input = begin_proxying(conn) 
+        dun = load_or_create_dungeon()
+
+        conn = connect_to_game(options) 
+        output, input = begin_proxying(conn, dun) 
 
         while True:
             available = select.select([conn.fileno(), sys.stdin.fileno()], [], [])[0]
