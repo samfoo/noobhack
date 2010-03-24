@@ -1,8 +1,11 @@
+import re
 import sys
 import tty
 import socket
 import termios
 import threading
+
+import ui
 
 class Input:
     """Take input from the current tty and proxy it to the nethack game. Before
@@ -25,10 +28,14 @@ class Input:
     def proxy(self):
         ch = sys.stdin.read(1)
 
+        if ch == "~":
+            ui.toggle_display()
+            return
+
         send_command = True
 
         for callback in self.filter_callbacks:
-            if callback(dungeon, ch) != True:
+            if callback(self.dungeon, ch) != True:
                 send_command = False
 
         if send_command:
@@ -55,10 +62,10 @@ class Output:
     def proxy(self):
         output = self.conn.read()
 
-        for pattern, callback in self.pattern_callbacks.values():
+        for pattern, callback in self.pattern_callbacks.iteritems():
             match = re.search(pattern, output)
             if match is not None:
-                callback(dungeon, output, match)
+                callback(self.dungeon, output, match)
 
         sys.stdout.write(output)
         sys.stdout.flush()

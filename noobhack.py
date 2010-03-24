@@ -9,6 +9,7 @@ import telnet
 import process
 import proxy
 import dungeon
+import ui
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]
@@ -80,6 +81,10 @@ def main():
 
         conn = connect_to_game(options) 
         output, input = begin_proxying(conn, dun) 
+
+        # If there's output of any kind we want to update the ui's game buffer
+        # so that the display state can be restored on exiting ui mode.
+        output.add_pattern_callback(".", ui.buffer.update_game_buffer)
 
         while True:
             available = select.select([conn.fileno(), sys.stdin.fileno()], [], [])[0]
