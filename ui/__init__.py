@@ -1,17 +1,10 @@
 import sys
 import curses
-import termios
-import fcntl
-import struct
 
-def tty_size():
-    s = struct.pack("HHHH", 0, 0, 0, 0)
-    size = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-    return struct.unpack("HHHH", size)[:2]
+import util
 
 class container:
     screen = None
-    displaying = False
 
 class buffer:
     game = ""
@@ -19,7 +12,7 @@ class buffer:
     @staticmethod
     def update_game_buffer(dungeon, output_from_game, matches):
         buffer.game += output_from_game
-        height, width = tty_size()
+        height, width = util.tty_size()
 
         # Keep a buffer of four times the size of the screen. Hopefully this is
         # small enough that we don't run out of memory, but big enough that
@@ -29,23 +22,31 @@ class buffer:
         if len(buffer.game) > max_buf_size:
             buffer.game = buffer.game[:max_buf_size]
 
-def display():
-    container.screen = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
-    curses.start_color()
-    container.screen.clear()
-    container.screen.refresh()
+class info:
+    @staticmethod
+    def display():
+        container.screen = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        curses.start_color()
+        container.screen.clear()
+        container.screen.refresh()
 
-def undisplay():
-    curses.reset_shell_mode()
-    container.screen = None
-    sys.stdout.write(buffer.game)
-    sys.stdout.flush()
+    @staticmethod
+    def undisplay():
+        container.screen.clear()
+        container.screen.refresh()
+        curses.reset_shell_mode()
+        container.screen = None
+        sys.stdout.write(buffer.game)
+        sys.stdout.flush()
+
+def is_displayed():
+    return container.screen != None
     
 def toggle_display():
     if container.screen is not None:
-        undisplay()
+        info.undisplay()
     else:
-        display()
+        info.display()
         

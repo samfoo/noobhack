@@ -5,8 +5,6 @@ import socket
 import termios
 import threading
 
-import ui
-
 class Input:
     """Take input from the current tty and proxy it to the nethack game. Before
     the input is proxied, a series of filter callbacks are called if any of 
@@ -27,10 +25,6 @@ class Input:
 
     def proxy(self):
         ch = sys.stdin.read(1)
-
-        if ch == "~":
-            ui.toggle_display()
-            return
 
         send_command = True
 
