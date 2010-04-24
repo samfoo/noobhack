@@ -14,14 +14,10 @@ class Input:
     Filter callbacks take two arguments, the first of which is the dungeon
     and the second is the string of the character that was read off of stdin."""
 
-    def __init__(self, conn, dungeon):
+    def __init__(self, conn):
         self.filter_callbacks = []
         self.conn = conn
-        self.dungeon = dungeon
         tty.setraw(sys.stdin.fileno())
-
-    def add_filter_callback(self, callback):
-        self.filter_callbacks.append(callback)
 
     def proxy(self):
         ch = sys.stdin.read(1)
@@ -29,8 +25,7 @@ class Input:
         send_command = True
 
         for callback in self.filter_callbacks:
-            if callback(self.dungeon, ch) != True:
-                send_command = False
+            pass
 
         if send_command:
             self.conn.write(ch)
@@ -40,26 +35,26 @@ class Output:
     
     Take output from the child and proxy it to our current stdout. Before the
     output it displayed it's checked for any matching patterns of text in the
-    pattern callbacks. If any of the patterns match those methods are called 
-    with the dungeon as their first argument, the input that triggered the call
-    as their second, and the match as their third."""
+    pattern callbacks. If any patterns match those methods are called."""
 
-    def __init__(self, conn, dungeon):
+    def __init__(self, conn):
         self.conn = conn
-        self.dungeon = dungeon
-        self.pattern_callbacks = {}
+        self.callbacks = {}
         tty.setraw(sys.stdout.fileno())
 
-    def add_pattern_callback(self, pattern, callback):
-        self.pattern_callbacks[pattern] = callback
+    def register(self, pattern, callback):
+        self.callbacks[pattern] = callback
 
     def proxy(self):
         output = self.conn.read()
 
-        for pattern, callback in self.pattern_callbacks.iteritems():
-            match = re.search(pattern, output)
+        for pattern, callback in self.callbacks.iteritems():
+            # Force the search to be insensitive and multiline. The clients can
+            # always be more specific on their own if they want since the
+            # entirety of the data is sent to them.
+            match = re.search(pattern, output, re.I | re.M)
             if match is not None:
-                callback(self.dungeon, output, match)
+                callback(pattern, output)
 
         sys.stdout.write(output)
         sys.stdout.flush()

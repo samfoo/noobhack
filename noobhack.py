@@ -66,12 +66,6 @@ def connect_to_game(options):
 
     return conn
 
-def load_or_create_dungeon():
-   return dungeon.load() or dungeon.Dungeon() 
-
-def begin_proxying(conn, dun):
-    return (proxy.Output(conn, dun), proxy.Input(conn, dun))
-
 def main():
     options = parse_options()
     exit_message = None 
@@ -81,12 +75,12 @@ def main():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
 
-        dun = load_or_create_dungeon()
         game = connect_to_game(options) 
-        output, input = begin_proxying(game, dun) 
+        output, input = proxy.Output(game), proxy.Input(game) 
         rpc = server.Server(output, input)
 
         while True:
+            # Let's wait until we have something to do...
             available = select.select(
                 [rpc.fileno(), game.fileno(), sys.stdin.fileno()] + rpc.connections, 
                 [], 

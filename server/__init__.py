@@ -1,6 +1,8 @@
 import socket 
 import json
 
+import commands
+
 class Server:
     BUF_SIZE = 2048
 
@@ -55,16 +57,11 @@ class Server:
             lines = lines[:-1]
 
         try:
-            commands = [json.loads(l) for l in lines if l != ""]
-
-            for command in commands:
-                self._process_command(conn, command)
+            for command in [json.loads(l) for l in lines if l != ""]:
+                commands.handle(self, conn, command)
 
             self.buffers[conn.fileno()] = remains
         except ValueError, e:
             # If for some reasona command fails, let the client know why and
             # then close the connection.
             return self.terminate("Invalid command '%s'.\r\n" % e, conn)
-
-    def _process_command(self, conn, command):
-        conn.send("command '%r' received\r\n" % command)
