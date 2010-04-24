@@ -8,6 +8,7 @@ import termios
 import telnet
 import process
 import proxy
+import server
 import dungeon
 import dungeon.player
 import dungeon.shops
@@ -83,6 +84,7 @@ def configure_default_callbacks(dun, output, input):
 
 def main():
     options = parse_options()
+    exit_message = None 
 
     try:
         # Store off our terminal settings so we can restore them later.
@@ -91,27 +93,43 @@ def main():
 
         dun = load_or_create_dungeon()
 
-        conn = connect_to_game(options) 
-        output, input = begin_proxying(conn, dun) 
+        rpc = server.Server()
 
-        configure_default_callbacks(dun, output, input)
+        game = connect_to_game(options) 
+        output, input = begin_proxying(game, dun) 
 
         while True:
-            available = select.select([conn.fileno(), sys.stdin.fileno()], [], [])[0]
+            available = select.select(
+                [rpc.fileno(), game.fileno(), sys.stdin.fileno()] + rpc.connections, 
+                [], 
+                []
+            )[0]
 
-            if conn.fileno() in available:
+            if game.fileno() in available:
                 # Do our display logic.
                 output.proxy()
 
             if sys.stdin.fileno() in available:
                 # Do our input logic.
                 input.proxy()
+
+            if rpc.socket.fileno() in available:
+                # Process a new connection to the RPC server.
+                rpc.accept()
+
+            for conn in [conn for conn in rpc.connections if conn in available]:
+                rpc.process(conn)
+
     except IOError, e:
         # Nethack terminated or there was some problem communicating with it.
-        pass
+        exit_message = e
+
     finally:
         # Make sure we restore the terminal settings to where they were.
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+    if exit_message is not None:
+        print exit_message
 
 if __name__ == "__main__":
     main()

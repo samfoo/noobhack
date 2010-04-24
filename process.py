@@ -34,7 +34,7 @@ class Local:
             # throws an IOError that we can safely ignore here.
             pass
 
-        raise IOError("My child is dead.")
+        raise IOError("Nethack exited.")
 
     def fileno(self):
         return self.pipe
