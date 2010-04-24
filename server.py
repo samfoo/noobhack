@@ -4,13 +4,16 @@ import json
 class Server:
     BUF_SIZE = 2048
 
-    def __init__(self, host="", port=31337):
+    def __init__(self, output_proxy, input_proxy, host="", port=31337):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.socket.bind((host, port))
         self.socket.listen(1)
         self.connections = []
         self.buffers = {}
+
+        self.output_proxy = output_proxy
+        self.input_proxy = input_proxy
 
     def fileno(self):
         return self.socket.fileno()

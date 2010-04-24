@@ -72,16 +72,6 @@ def load_or_create_dungeon():
 def begin_proxying(conn, dun):
     return (proxy.Output(conn, dun), proxy.Input(conn, dun))
 
-def configure_default_callbacks(dun, output, input):
-    # When you die, we want to clean-up the saved dungeon file.
-    output.add_pattern_callback(dungeon.player.death, dungeon.callbacks.death_callback)
-
-    # When you enter a shop, we want to record it's location
-    output.add_pattern_callback(dungeon.shops.entrance, dungeon.callbacks.shop_entered_callback)
-
-    # When the player goes to a different dungeon level, record the change
-    output.add_pattern_callback(dungeon.player.level, dungeon.callbacks.level_changed_callback)
-
 def main():
     options = parse_options()
     exit_message = None 
@@ -92,11 +82,9 @@ def main():
         old_settings = termios.tcgetattr(fd)
 
         dun = load_or_create_dungeon()
-
-        rpc = server.Server()
-
         game = connect_to_game(options) 
         output, input = begin_proxying(game, dun) 
+        rpc = server.Server(output, input)
 
         while True:
             available = select.select(
