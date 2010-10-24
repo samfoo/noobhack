@@ -11,8 +11,8 @@ class Server:
 
         self.socket.bind((host, port))
         self.socket.listen(1)
-        self.connections = []
-        self.buffers = {}
+        self.buffer = "" 
+        self.client = None
 
         self.output_proxy = output_proxy
         self.input_proxy = input_proxy
@@ -23,45 +23,56 @@ class Server:
     def accept(self):
         conn, addr = self.socket.accept()
 
-        # This shouldn't actually be necessary, but in case we some, crazy, how
-        # manage to get a connection in the process method that hasn't been
-        # cleared as having data available, it's best not to halt *everything*
-        # with blocking anyway.
-        conn.setblocking(False)
+        if self.client != None:
+            conn.send("There's already a client connected to this server")
+            conn.close()
+        else:
+            self.client = conn 
 
-        self.connections.append(conn)
-        self.buffers[conn.fileno()] = ""
-
-        return (conn, addr)
+            return (self.client, addr)
 
     def close(self):
+        if self.client is not None:
+            self.terminate("Server is quitting.\r\n")
+
         self.socket.close()
 
-    def terminate(self, msg, conn):
-        conn.send(msg)
-        self.connections.remove(conn)
-        del self.buffers[conn.fileno()]
-        conn.close()
+    def terminate(self, msg):
+        try:
+            self.client.send(msg)
+        except socket.error, e:
+            # Oh well, nothing to do if the client hung up unexpectadly
+            pass
 
-    def process(self, conn):
-        client_buf = self.buffers[conn.fileno()]
-        client_buf += conn.recv(Server.BUF_SIZE)
+        self.client.close()
+
+        self.client = None
+        commands.unhandle(self)
+
+    def _read(self):
+        self.buffer += self.client.recv(Server.BUF_SIZE)
 
         # If what we received didn't end in a newline, then it's not a complete
         # command yet. Make sure that for the commands we're processing, we
         # don't try to deserialize incomplete commands.
         remains = ""
-        lines = client_buf.split("\r\n")
-        if not client_buf.endswith("\r\n"):
+        lines = self.buffer.split("\r\n")
+        if not self.buffer.endswith("\r\n"):
             remains = lines[-1]
             lines = lines[:-1]
 
-        try:
-            for command in [json.loads(l) for l in lines if l != ""]:
-                commands.handle(self, conn, command)
+        self.buffer = remains
+        return [json.loads(l) for l in lines if l != ""]
 
-            self.buffers[conn.fileno()] = remains
+    def _execute(self, queue):
+        # Loop through commands in a queue an execute them.
+        for command in queue: 
+            commands.handle(self, command)
+
+    def process(self):
+        try:
+            self._execute(self._read())
         except ValueError, e:
-            # If for some reasona command fails, let the client know why and
+            # If for some reason a command fails, let the client know why and
             # then close the connection.
-            return self.terminate("Invalid command '%s'.\r\n" % e, conn)
+            return self.terminate("Invalid command '%s'.\r\n" % e, self.client)

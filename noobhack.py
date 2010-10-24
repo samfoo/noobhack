@@ -69,6 +69,7 @@ def connect_to_game(options):
 def main():
     options = parse_options()
     exit_message = None 
+    rpc = None
 
     try:
         # Store off our terminal settings so we can restore them later.
@@ -81,11 +82,10 @@ def main():
 
         while True:
             # Let's wait until we have something to do...
-            available = select.select(
-                [rpc.fileno(), game.fileno(), sys.stdin.fileno()] + rpc.connections, 
-                [], 
-                []
-            )[0]
+            fds = [rpc.fileno(), game.fileno(), sys.stdin.fileno()]
+            if rpc.client is not None:
+                fds.append(rpc.client)
+            available = select.select(fds, [], [])[0]
 
             if game.fileno() in available:
                 # Do our display logic.
@@ -99,12 +99,15 @@ def main():
                 # Process a new connection to the RPC server.
                 rpc.accept()
 
-            for conn in [conn for conn in rpc.connections if conn in available]:
-                rpc.process(conn)
+            if rpc.client in available:
+                # Process input from the client.
+                rpc.process()
 
     except IOError, e:
         # Nethack terminated or there was some problem communicating with it.
         exit_message = e
+        if rpc is not None:
+            rpc.close()
 
     finally:
         # Make sure we restore the terminal settings to where they were.
