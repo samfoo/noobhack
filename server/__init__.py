@@ -4,6 +4,39 @@ import json
 import commands
 
 class Server:
+    """This is the RPC command server. It allows one client to connect and 
+    accepts registrations for callbacks, telling the client when a callback
+    should be triggered.
+    
+    The server API is simple: Each message is a json object followed by a
+    carriage return and newline. 
+    
+    To register a callback:
+
+        {"pattern": "{regex}", "name": "{callback.name}"}
+
+    When the callback is triggered, the server will send the following to the
+    client:
+
+        {"callback": "{callback.name}", "data": "{data that triggered it}"}
+
+    To register a 'safety':
+
+        {"key": "{input.code}", "safety" : "{safety.name}"}
+
+    When that code is encountered as input, noobhack will block the game, not 
+    accepting input or output and will send the following message to the
+    client:
+        
+        {"key": "{input.code}", "safety" : "{safety.name}"}
+
+    Before the game will continue, the client must respond with either:
+
+        {"safety": "{safety.name}", "status": "ok"}
+
+    Or with a status of anything other than "ok" if the key is not to be
+    forwarded."""
+
     BUF_SIZE = 2048
 
     def __init__(self, output_proxy, input_proxy, host="", port=31337):

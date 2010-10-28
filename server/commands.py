@@ -26,13 +26,15 @@ def handle(server, com):
         __register_safety(server, com["name"], com["safety"])
 
 def __callback(server, name, data):
-    # Make a call to the client telling it to execute some callback.
+    """Make a call to the client telling it to execute some callback."""
+
     callback = {"callback": name, "data": data}
     server.client.send(json.dumps(callback) + "\r\n")
 
 def __safety(server, name, key):
-    # Make a call to the client, asking it to tell us whether or not we should
-    # allow this keypress through to the game.
+    """Make a call to the client, asking it to tell us whether or not we should
+    allow this keypress through to the game."""
+
     callback = {"safety": name, "key": key}
     server.client.send(json.dumps(callback) + "\r\n")
 
@@ -59,8 +61,9 @@ def __safety(server, name, key):
     return False
 
 def __safety_wrapper(key):
-    # A wrapper passed to the input proxy that translates an input filter 
-    # callback to the client callback
+    """A wrapper passed to the input proxy that translates an input filter 
+    callback to the client callback"""
+
     if safeties.has_key(key):
         for safety in safeties[key]:
             success = __safety(safety["server"],
@@ -71,8 +74,9 @@ def __safety_wrapper(key):
     return True
 
 def __callback_wrapper(pattern, data): 
-    # A wrapper passed to the output proxy that translates a callback to a 
-    # client that registered it.
+    """A wrapper passed to the output proxy that translates a callback to a 
+    client that registered it."""
+
     if callbacks.has_key(pattern):
         for registration in callbacks[pattern]:
             __callback(registration["server"], 

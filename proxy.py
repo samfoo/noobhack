@@ -17,14 +17,16 @@ class Input:
         tty.setraw(sys.stdin.fileno())
 
     def register(self, key, callback):
-        # Register a callback. The callback takes the key that was pressed as 
-        # its only argument.
+        """Register a callback. The callback takes the key that was pressed as 
+        its only argument."""
+
         self.safeties[key] = callback
 
     def unregister(self, key):
-        # Is this even necessary? It's kind of lame that you have to deregister
-        # everything, but would you even have access to the callback object
-        # later when you could say "only unregister _this_ callback"?
+        """Is this even necessary? It's kind of lame that you have to deregister
+        everything, but would you even have access to the callback object
+        later when you could say "only unregister _this_ callback"?"""
+
         if self.safeties.has_key(key):
             del self.safeties[key]
 
