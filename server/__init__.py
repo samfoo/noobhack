@@ -41,6 +41,7 @@ class Server:
 
     def __init__(self, output_proxy, input_proxy, host="", port=31337):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setblocking(0)
 
         self.socket.bind((host, port))
         self.socket.listen(1)
@@ -65,9 +66,6 @@ class Server:
             return (self.client, addr)
 
     def close(self):
-        if self.client is not None:
-            self.terminate("Server is quitting.\r\n")
-
         self.socket.close()
 
     def terminate(self, msg):

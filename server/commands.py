@@ -4,6 +4,9 @@ import select
 callbacks = {}
 safeties = {} 
 
+class ClientReady(Exception):
+    pass
+
 def unhandle(server):
     global callbacks, safeties
 
@@ -24,6 +27,8 @@ def handle(server, com):
         __register_callback(server, com["name"], com["pattern"])
     elif com.has_key("safety"):
         __register_safety(server, com["name"], com["safety"])
+    elif com.has_key("ready"):
+        raise ClientReady() 
 
 def __callback(server, name, data):
     """Make a call to the client telling it to execute some callback."""

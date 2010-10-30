@@ -14,7 +14,6 @@ class Input:
     def __init__(self, conn):
         self.conn = conn
         self.safeties = {} 
-        tty.setraw(sys.stdin.fileno())
 
     def register(self, key, callback):
         """Register a callback. The callback takes the key that was pressed as 
@@ -52,7 +51,6 @@ class Output:
     def __init__(self, conn):
         self.conn = conn
         self.callbacks = {}
-        tty.setraw(sys.stdout.fileno())
 
     def register(self, pattern, callback):
         self.callbacks[pattern] = callback

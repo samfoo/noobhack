@@ -1,8 +1,11 @@
+import os
 import sys
 import tty
 import pdb
+import fcntl
 import getopt
 import select
+import signal
 import termios
 
 import telnet
@@ -80,11 +83,28 @@ def main():
         output, input = proxy.Output(game), proxy.Input(game) 
         rpc = server.Server(output, input)
 
+        # Wait for the client to connect
+        print "Waiting for the client to connect..."
+
+        select.select([rpc.fileno()], [], [])
+        rpc.accept()
+
+        print "Client connected, waiting for the all clear..."
+        try:
+            while True:
+                # Read everything from the client until we get a "ready"
+                # message, then start the normal flow control.
+                select.select([rpc.client], [], [])
+                rpc.process()
+        except server.commands.ClientReady:
+            pass
+
+        tty.setraw(sys.stdin.fileno())
+        tty.setraw(sys.stdout.fileno())
+
         while True:
             # Let's wait until we have something to do...
-            fds = [rpc.fileno(), game.fileno(), sys.stdin.fileno()]
-            if rpc.client is not None:
-                fds.append(rpc.client)
+            fds = [rpc.client, game.fileno(), sys.stdin.fileno()]
             available = select.select(fds, [], [])[0]
 
             if game.fileno() in available:
@@ -94,10 +114,6 @@ def main():
             if sys.stdin.fileno() in available:
                 # Do our input logic.
                 input.proxy()
-
-            if rpc.socket.fileno() in available:
-                # Process a new connection to the RPC server.
-                rpc.accept()
 
             if rpc.client in available:
                 # Process input from the client.
