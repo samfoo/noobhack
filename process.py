@@ -1,7 +1,10 @@
 import os
 import sys
+import fcntl
+import struct
 import select
 import signal
+import termios
 
 class Local:
     def open(self):
@@ -25,6 +28,8 @@ class Local:
             self.stdout = os.fdopen(self.pipe, "rb", 0)
             self.stdin = os.fdopen(self.pipe, "wb", 0)
 
+            self.resize_child()
+
     def _close(self, sig, sf):
         try:
             self.stdout.close()
@@ -36,6 +41,12 @@ class Local:
 
         raise IOError("Nethack exited.")
 
+    def resize_child(self):
+        # Get the host app's terminal size first.
+        parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
+        # Now set the child (conduit) app's size properly
+        fcntl.ioctl(self.stdin, termios.TIOCSWINSZ, parent)
+
     def fileno(self):
         return self.pipe
 
@@ -44,12 +55,14 @@ class Local:
         os.kill(self.pid, signal.SIGTERM)
 
     def write(self, buf):
+        self.resize_child()
         self.stdin.write(buf)
 
     def read(self):
         buf = ""
         while self.data_is_available(): 
             buf += self.stdout.read(1)
+        self.resize_child()
         return buf
 
     def data_is_available(self):
