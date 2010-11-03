@@ -24,13 +24,17 @@ class Local:
             signal.siginterrupt(signal.SIGCHLD, True)
             signal.signal(signal.SIGCHLD, self._close)
 
+            # When my tty resizes, the child's pty should resize too.
+            signal.signal(signal.SIGWINCH, self.resize_child)
+
             # Setup out input/output proxies
             self.stdout = os.fdopen(self.pipe, "rb", 0)
             self.stdin = os.fdopen(self.pipe, "wb", 0)
 
+            # Set the initial size of the child pty to my own size.
             self.resize_child()
 
-    def _close(self, sig, sf):
+    def _close(self, *args):
         try:
             self.stdout.close()
             self.stdin.close()
@@ -41,7 +45,7 @@ class Local:
 
         raise IOError("Nethack exited.")
 
-    def resize_child(self):
+    def resize_child(self, *args):
         # Get the host app's terminal size first.
         parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
         # Now set the child (conduit) app's size properly
@@ -55,14 +59,12 @@ class Local:
         os.kill(self.pid, signal.SIGTERM)
 
     def write(self, buf):
-        self.resize_child()
         self.stdin.write(buf)
 
     def read(self):
         buf = ""
         while self.data_is_available(): 
             buf += self.stdout.read(1)
-        self.resize_child()
         return buf
 
     def data_is_available(self):

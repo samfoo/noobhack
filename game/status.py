@@ -1,3 +1,14 @@
+bads = set(["blind", "lycanthropy", "stoning", "injured leg"])
+goods = set(["fast", "very fast", "stealth"])
+
+def type(status):
+    if status in bads:
+        return "bad"
+    elif status in goods:
+        return "good"
+    else:
+        return "neutral"
+
 messages = {
     "blind": {
         "You are blinded by a blast of light!": True,

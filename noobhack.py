@@ -89,15 +89,7 @@ def main():
         select.select([rpc.fileno()], [], [])
         rpc.accept()
 
-        print "Client connected, waiting for the all clear..."
-        try:
-            while True:
-                # Read everything from the client until we get a "ready"
-                # message, then start the normal flow control.
-                select.select([rpc.client], [], [])
-                rpc.process()
-        except server.commands.ClientReady:
-            pass
+        print "Client connected."
 
         tty.setraw(sys.stdin.fileno())
         tty.setraw(sys.stdout.fileno())
