@@ -29,8 +29,6 @@ class Client:
 
         self.buffer += recvd 
 
-        print self.buffer
-
         # If what we received didn't end in a newline, then it's not a complete
         # command yet. Make sure that for the commands we're processing, we
         # don't try to deserialize incomplete commands.
@@ -58,7 +56,6 @@ class Client:
                 # likely a signal about resizing the console window or
                 # something. We can ignore those, but if it's anything else,
                 # it's probably some *actual* problem that we have to die for.
-                print repr(e.args)
                 raise e
 
 PADDING = 2 
@@ -69,7 +66,6 @@ STATUS = {
 }
 
 def layout(screen):
-
     # Create two subwindows that horizontally divied the screen in two.
     height, width = screen.getmaxyx()
     half = height / 2

@@ -16,7 +16,6 @@ class Telnet:
 
     def open(self):
         self.conn = telnetlib.Telnet(self.host, self.port)
-        #self.conn.set_debuglevel(10)
         self.conn.set_option_negotiation_callback(self.set_option)
 
     def close(self):
@@ -26,7 +25,6 @@ class Telnet:
         return self.conn.get_socket().fileno()
 
     def set_option(self, socket, command, option):
-        #print "got a command %r %r" % (command, option)
         if command == telnetlib.DO and option == "\x18":
             # Promise we'll send a terminal type
             socket.send("%s%s\x18" % (telnetlib.IAC, telnetlib.WILL))
