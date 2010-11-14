@@ -17,7 +17,7 @@ import process
 import proxy
 
 class Noobhack:
-    toggle_key = "\t"
+    toggle = "\t"
 
     def __init__(self):
         self.options = self.parse_options()
@@ -41,7 +41,7 @@ class Noobhack:
         self.term.attach(self.stream)
         self.output_proxy.register(self.stream.process)
 
-        # Register the tilde '~' key to open up the interactive nooback 
+        # Register the `toggle` key to open up the interactive nooback 
         # assistant.
         self.input_proxy.register(self._toggle_handler)
 
@@ -120,7 +120,7 @@ class Noobhack:
         return struct.unpack('hh', raw) 
 
     def _toggle_handler(self, key):
-        if key == self.toggle_key:
+        if key == self.toggle:
             self._toggle_mode()
 
     def _toggle_mode(self):
