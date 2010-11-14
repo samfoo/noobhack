@@ -1,11 +1,11 @@
-import os
+"""
+noobhack helps you ascend at nethack.
+"""
+
 import sys
-import tty
-import pdb
 import fcntl
 import getopt
 import select
-import signal
 import struct
 import curses
 import termios
@@ -15,11 +15,6 @@ import vt102
 import telnet
 import process
 import proxy
-import server
-import dungeon
-import dungeon.player
-import dungeon.shops
-import dungeon.callbacks
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]
@@ -39,7 +34,8 @@ def parse_options():
         getopt.getopt(sys.argv[1:], "lh:p:", [])
 
     if len(remaining) > 0:
-        sys.stderr.write("noobhack: unrecognized argument(s) `%s'\n" % ",".join(remaining))
+        sys.stderr.write("noobhack: unrecognized argument(s) `%s'\n" % \
+                         ",".join(remaining))
         usage()
 
     opts = [pair[0] for pair in options]
@@ -53,102 +49,97 @@ def parse_options():
 
     for opt, val in options:
         if opt == "-h":
-            host = val
-            local = False
+            options["host"] = val
+            options["local"] = False
         elif opt == "-p":
-            port = val
+            options["port"] = val
 
     return opts_dict 
 
 def connect_to_game(options):
+    """
+    Fork the game, or connect to a foreign host to play.
+
+    :return: A file like object of the game. Reading/writing is the same as
+    accessing stdout/stdin in the game respectively.
+    """
+
     try:
         if options.get("local", False):
             conn = process.Local()
         else:
             conn = telnet.Telnet(options["host"], options.get("port", 23))
         conn.open()
-    except IOError, e:
-        sys.stderr.write("Could not establish a connection to nethack: `%s'\n" % e)
-        raise e
+    except IOError, error:
+        sys.stderr.write("Unable to open nethack: `%s'\n" % error)
+        raise 
 
     return conn
 
 def get_size():
+    """
+    Get the current terminal size.
+
+    :return: (rows, cols)
+    """
+
     raw = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
     return struct.unpack('hh', raw) 
 
-exit_message = None
-
-def run(screen):
-    global exit_message
-
+def run(window):
     options = parse_options()
 
     # We prefer to let the console pick the colors for the bg/fg instead of
     # using what curses thinks looks good.
     curses.use_default_colors()
 
-    window = curses.newwin(0, 0)
+    game = connect_to_game(options) 
+    output_proxy, input_proxy = proxy.Output(game), proxy.Input(game) 
 
-    try:
-        # Store off our terminal settings so we can restore them later.
-        fd = sys.stdin.fileno()
+    # Create an in-memory terminal screen and register it's stream
+    # processor with the output proxy.
+    term_stream = vt102.stream()
 
-        game = connect_to_game(options) 
-        output, input = proxy.Output(game), proxy.Input(game) 
+    # For some reason that I can't assertain: curses freaks out and crashes
+    # when you use exactly the number of rows that are available on the
+    # terminal. It seems easiest just to subtract one from the rows and 
+    # deal with it rather than hunt forever trying to figure out what I'm
+    # doing wrong with curses.
+    rows, cols = get_size()
+    term_screen = vt102.screen((rows-1, cols))
+    term_screen.attach(term_stream)
+    output_proxy.register(term_stream.process)
 
-        # Create an in-memory terminal screen and register it's stream
-        # processor with the output proxy.
-        term_stream = vt102.stream()
+    while True:
+        # Let's wait until we have something to do...
+        available = select.select([game.fileno(), sys.stdin.fileno()], [], [])[0]
 
-        # For some reason that I can't assertain: curses freaks out and crashes
-        # when you use exactly the number of rows that are available on the
-        # terminal. It seems easiest just to subtract one from the rows and 
-        # deal with it rather than hunt forever trying to figure out what I'm
-        # doing wrong with curses.
-        rows, cols = get_size()
-        term_screen = vt102.screen((rows-1,cols))
-        term_screen.attach(term_stream)
-        output.register(term_stream.process)
+        if game.fileno() in available:
+            # Do our display logic.
+            output_proxy.proxy()
 
-        while True:
-            # Let's wait until we have something to do...
-            fds = [game.fileno(), sys.stdin.fileno()]
-            available = select.select(fds, [], [])[0]
+        if sys.stdin.fileno() in available:
+            # Do our input logic.
+            input_proxy.proxy()
 
-            if game.fileno() in available:
-                # Do our display logic.
-                output.proxy()
+        # Repaint the screen with the new contents of our terminal 
+        # emulator...
+        window.clear()
+        for row_index, game_row in enumerate(term_screen.display):
+            window.addstr(row_index, 0, game_row)
 
-            if sys.stdin.fileno() in available:
-                # Do our input logic.
-                input.proxy()
+        # Don't forget to move the cursor to where it is in game...
+        cur_x, cur_y = term_screen.cursor()
+        window.move(cur_y, cur_x)
 
-            # Repaint the screen with the new contents of our terminal 
-            # emulator...
-            window.clear()
-            for row_index, game_row in enumerate(term_screen.display):
-                window.addstr(row_index, 0, game_row)
-
-            # Don't forget to move the cursor to where it is in game...
-            x, y = term_screen.cursor()
-            window.move(y, x)
-
-            # Finally, redraw the whole thing.
-            window.refresh()
-
-    except IOError, e:
-        # Nethack terminated or there was some problem communicating with it.
-        exit_message = e
+        # Finally, redraw the whole thing.
+        window.refresh()
 
 def main():
-    global exit_message 
-
     try:
         curses.wrapper(run)
-    finally:
-        if exit_message is not None:
-            print exit_message
+    except IOError, exit_message:
+        print exit_message
 
 if __name__ == "__main__":
     main()
