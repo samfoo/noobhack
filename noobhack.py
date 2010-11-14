@@ -6,7 +6,11 @@ import fcntl
 import getopt
 import select
 import signal
+import struct
+import curses
 import termios
+
+import vt102
 
 import telnet
 import process
@@ -69,34 +73,47 @@ def connect_to_game(options):
 
     return conn
 
-def main():
+def get_size():
+    raw = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
+    return struct.unpack('hh', raw) 
+
+exit_message = None
+
+def run(screen):
+    global exit_message
+
     options = parse_options()
-    exit_message = None 
-    rpc = None
+
+    # We prefer to let the console pick the colors for the bg/fg instead of
+    # using what curses thinks looks good.
+    curses.use_default_colors()
+
+    window = curses.newwin(0, 0)
 
     try:
         # Store off our terminal settings so we can restore them later.
         fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
 
         game = connect_to_game(options) 
         output, input = proxy.Output(game), proxy.Input(game) 
-        rpc = server.Server(output, input)
 
-        # Wait for the client to connect
-        print "Waiting for the client to connect..."
+        # Create an in-memory terminal screen and register it's stream
+        # processor with the output proxy.
+        term_stream = vt102.stream()
 
-        select.select([rpc.fileno()], [], [])
-        rpc.accept()
-
-        print "Client connected."
-
-        tty.setraw(sys.stdin.fileno())
-        tty.setraw(sys.stdout.fileno())
+        # For some reason that I can't assertain: curses freaks out and crashes
+        # when you use exactly the number of rows that are available on the
+        # terminal. It seems easiest just to subtract one from the rows and 
+        # deal with it rather than hunt forever trying to figure out what I'm
+        # doing wrong with curses.
+        rows, cols = get_size()
+        term_screen = vt102.screen((rows-1,cols))
+        term_screen.attach(term_stream)
+        output.register(term_stream.process)
 
         while True:
             # Let's wait until we have something to do...
-            fds = [rpc.client, game.fileno(), sys.stdin.fileno()]
+            fds = [game.fileno(), sys.stdin.fileno()]
             available = select.select(fds, [], [])[0]
 
             if game.fileno() in available:
@@ -107,22 +124,31 @@ def main():
                 # Do our input logic.
                 input.proxy()
 
-            if rpc.client in available:
-                # Process input from the client.
-                rpc.process()
+            # Repaint the screen with the new contents of our terminal 
+            # emulator...
+            window.clear()
+            for row_index, game_row in enumerate(term_screen.display):
+                window.addstr(row_index, 0, game_row)
+
+            # Don't forget to move the cursor to where it is in game...
+            x, y = term_screen.cursor()
+            window.move(y, x)
+
+            # Finally, redraw the whole thing.
+            window.refresh()
 
     except IOError, e:
         # Nethack terminated or there was some problem communicating with it.
         exit_message = e
-        if rpc is not None:
-            rpc.close()
 
+def main():
+    global exit_message 
+
+    try:
+        curses.wrapper(run)
     finally:
-        # Make sure we restore the terminal settings to where they were.
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-
-    if exit_message is not None:
-        print exit_message
+        if exit_message is not None:
+            print exit_message
 
 if __name__ == "__main__":
     main()

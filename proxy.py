@@ -6,70 +6,50 @@ import termios
 import threading
 
 class Input:
-    """Proxy input from stdin to the game. Safety handlers may be registered 
-    that, if they return false will not forward the input key to the game. This
-    is useful when, for example, the client knows that the player is about to 
-    attack a cockatrice barehanded or melee a floating eye."""
+    """
+    Proxies raw input from the terminal to the game, calling a set of callbacks
+    each input item it receives. If any of the callbacks return `False` then
+    the input is not forwarded to the game.
+    """
 
     def __init__(self, conn):
         self.conn = conn
-        self.safeties = {} 
+        self.callbacks = set()
 
-    def register(self, key, callback):
-        """Register a callback. The callback takes the key that was pressed as 
-        its only argument."""
+    def register(self, callback):
+        self.callbacks.add(callback)
 
-        self.safeties[key] = callback
-
-    def unregister(self, key):
-        """Is this even necessary? It's kind of lame that you have to deregister
-        everything, but would you even have access to the callback object
-        later when you could say "only unregister _this_ callback"?"""
-
-        if self.safeties.has_key(key):
-            del self.safeties[key]
+    def unregister(self, callback):
+        self.callbacks.remove(callback)
 
     def proxy(self):
         input = sys.stdin.read(1)
 
-        for key, callback in self.safeties.iteritems():
-            match = re.search(key, input)
-            if match is not None:
-                if callback(input) == False:
-                    # If any safety fails, don't write the character to the game.
-                    return
+        for callback in self.callbacks:
+            if callback(input) is False:
+                return
 
-        # No safety net triggered, just write the input to the game.
         self.conn.write(input)
 
 class Output:
-    """Pam's Gossip Train. Take output from the child and proxy it to our 
-    current stdout. Before the output it displayed it's checked for any 
-    matching patterns of text in the pattern callbacks. If any patterns 
-    match... those methods are called."""
+    """
+    Proxies raw output from the game and calls a set of callbacks each time 
+    with the stream that was output. Typically you'd want to attach a terminal
+    emulator, or something that can parse the output as meaningful to this.
+    """
 
     def __init__(self, conn):
         self.conn = conn
-        self.callbacks = {}
+        self.callbacks = set() 
 
-    def register(self, pattern, callback):
-        self.callbacks[pattern] = callback
+    def register(self, callback):
+        self.callbacks.add(callback)
 
-    def unregister(self, pattern):
-        if self.callbacks.has_key(pattern):
-            del self.callbacks[pattern]
+    def unregister(self, callback):
+        self.callbacks.remove(callback)
 
     def proxy(self):
         output = self.conn.read()
 
-        for pattern, callback in self.callbacks.iteritems():
-            # Force the search to be insensitive and multiline. The clients can
-            # always be more specific on their own if they want since the
-            # entirety of the data is sent to them.
-            match = re.search(pattern, output, re.I | re.M)
-            if match is not None:
-                callback(pattern, output)
-
-        sys.stdout.write(output)
-        sys.stdout.flush()
-
+        for callback in self.callbacks:
+            callback(output)
