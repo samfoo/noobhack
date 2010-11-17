@@ -16,6 +16,9 @@ import telnet
 import process
 import proxy
 
+#from game.player import Player
+#from game import events 
+
 class Noobhack:
     toggle = "\t"
 
@@ -44,6 +47,10 @@ class Noobhack:
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.
         self.input_proxy.register(self._toggle_handler)
+
+        # Create a player object to track player state.
+        #self.player = Player()
+        #self.output_proxy.register(events.dispatcher.process)
 
     def usage(self):
         sys.stderr.write("""Usage: noobhack.py [options]
@@ -122,6 +129,7 @@ class Noobhack:
     def _toggle_handler(self, key):
         if key == self.toggle:
             self._toggle_mode()
+            return False
 
     def _toggle_mode(self):
         if self.mode == "game":
@@ -129,12 +137,49 @@ class Noobhack:
         else:
             self.mode = "game"
 
+    colors = {
+        "black": curses.COLOR_BLACK,
+        "blue": curses.COLOR_BLUE,
+        "cyan": curses.COLOR_CYAN,
+        "green": curses.COLOR_GREEN,
+        "magenta": curses.COLOR_MAGENTA,
+        "red": curses.COLOR_RED,
+        "white": curses.COLOR_WHITE,
+        "yellow": curses.COLOR_YELLOW,
+        "brown": curses.COLOR_YELLOW,
+        "default": -1,
+    }
+
+    styles = {
+        "bold": curses.A_BOLD,
+        "dim": curses.A_DIM,
+        "underline": curses.A_UNDERLINE,
+        "blink": curses.A_BLINK,
+    }
+
+    def _get_color(self, fg, bg, registered={}):
+        if not registered.has_key((fg, bg)):
+            curses.init_pair(len(registered)+1, fg, bg)
+            registered[(fg,bg)] = len(registered) + 1
+        return curses.color_pair(registered[(fg,bg)])
+
+    def _redraw_game_row(self, window, row):
+        row_a = self.term.attributes[row]
+        row_c = self.term.display[row]
+        for col, (char, (styles, fg, bg)) in enumerate(zip(row_c, row_a)): 
+            styles = set(styles)
+            fg = self.colors.get(fg, -1)
+            bg = self.colors.get(bg, -1)
+            styles = [self.styles.get(s, curses.A_NORMAL) for s in styles]
+            attrs = styles + [self._get_color(fg, bg)]
+            window.addch(row, col, char, reduce(lambda a, b: a | b, attrs))
+
     def _redraw_game(self, window):
         # Repaint the screen with the new contents of our terminal 
         # emulator...
         window.clear()
-        for row_index, game_row in enumerate(self.term.display):
-            window.addstr(row_index, 0, game_row)
+        for row_index in xrange(len(self.term.display)):
+            self._redraw_game_row(window, row_index)
 
         # Don't forget to move the cursor to where it is in game...
         cur_x, cur_y = self.term.cursor()
@@ -143,7 +188,7 @@ class Noobhack:
         # Finally, redraw the whole thing.
         window.refresh()
 
-    def _iterate_game(self, window):
+    def _game(self, window):
         self._redraw_game(window) 
 
         # Let's wait until we have something to do...
@@ -164,7 +209,7 @@ class Noobhack:
         window.addstr(0, 0, "help")
         window.refresh()
 
-    def _iterate_help(self, window):
+    def _help(self, window):
         self._redraw_help(window)
         select.select([sys.stdin.fileno()], [], [])
         self._toggle_handler(sys.stdin.read(1))
@@ -176,9 +221,9 @@ class Noobhack:
 
         while True:
             if self.mode == "game":
-                self._iterate_game(window)
+                self._game(window)
             else:
-                self._iterate_help(window)
+                self._help(window)
 
     def main(self):
         try:

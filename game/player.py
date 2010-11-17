@@ -3,9 +3,11 @@ import status
 import events
 
 class Player:
-    """The player keeps track of various player states that are helpful to know
+    """
+    The player keeps track of various player states that are helpful to know
     but either not displayed in the nethack UI or displayed with less
-    information than we might be able to infer about it."""
+    information than we might be able to infer about it.
+    """
 
     def __init__(self):
         self.status = set() 
