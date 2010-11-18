@@ -15,7 +15,7 @@ from game import player, brain, status
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
-# out that it just renders as yellow anyway.
+# out that it just renders as yellow (at least in OSX Terminal.app) anyway.
 colors = {
     "black": curses.COLOR_BLACK,
     "blue": curses.COLOR_BLUE,
@@ -80,7 +80,7 @@ class Helper:
         def sort_statuses(left, right):
             """Sort statuses first by their effect (bad, good, neutral), and
             second by their name."""
-            diff = cmp(status.type(left), status.type(right))
+            diff = cmp(status.type_of(left), status.type_of(right))
             if diff == 0:
                 diff = cmp(left, right)
             return diff
@@ -102,9 +102,9 @@ class Helper:
         statuses = self._get_statuses()
         for row, stat in enumerate(statuses, 1):
             attrs = []
-            if status.type(stat) == "bad":
+            if status.type_of(stat) == "bad":
                 attrs += [curses.A_BOLD, get_color(curses.COLOR_RED, -1)]
-            elif status.type(stat) == "good":
+            elif status.type_of(stat) == "good":
                 attrs += [get_color(curses.COLOR_GREEN, -1)]
 
             attrs = reduce(lambda a, b: a | b, attrs, 0)

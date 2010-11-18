@@ -62,5 +62,9 @@ class Brain:
                 dispatcher.dispatch("turn", value=self.turn)
 
     def process(self, data):
+        """
+        Callback attached to the output proxy.
+        """
+
         self._dispatch_status_events(data)
         self._dispatch_turn_change_event()

@@ -1,7 +1,11 @@
 bads = set(["blind", "lycanthropy", "stoning", "injured leg"])
 goods = set(["fast", "very fast", "stealth"])
 
-def type(status):
+def type_of(status):
+    """
+    Return the type of a particular status; either `"good"`, `"bad"` or 
+    `"neutral"`
+    """
     if status in bads:
         return "bad"
     elif status in goods:
