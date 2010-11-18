@@ -1,4 +1,4 @@
-entrance = "Welcome to \\w's (.*)!"
+entrance = "Welcome( again)? to \\w+'s (.*)!"
 
 types = {
     "general": "100% random",

@@ -31,12 +31,15 @@ class Dispatcher:
         if self.listeners.has_key(event):
             self.listeners[event].remove(function)
 
-    def dispatch(self, event, **kwargs):
+    def dispatch(self, event, *args):
         """
         Dispatch an event.
         """
 
         for listener in self.listeners.get(event, []):
-            listener(event, kwargs)
+            if event == "status" and len(args) > 2:
+                import pdb
+                pdb.set_trace()
+            listener(event, *args)
 
 dispatcher = Dispatcher()

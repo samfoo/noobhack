@@ -11,7 +11,7 @@ import termios
 
 import vt102 
 
-from game import player, brain, status
+from game import player, dungeon, brain, status
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
@@ -71,6 +71,7 @@ class Helper:
     def __init__(self, output_proxy):
         self.brain = brain.Brain(output_proxy)
         self.player = player.Player()
+        self.dungeon = dungeon.Dungeon()
 
     def _get_statuses(self):
         """
@@ -87,6 +88,25 @@ class Helper:
 
         return sorted(self.player.status, sort_statuses)
 
+    def _redraw_dlvl(self, window):
+        height, width = 10, 30 
+        # TODO: I'm unclear whether creating a derived window every time 
+        # there's a repaint is a memory leak or not. For now I'm going to leave
+        # it, but `dungeon_frame` might have to be a property instead.
+        dungeon_frame = window.derwin(height, width, 0, 15)
+        dungeon_frame.clear()
+        dungeon_frame.border("|", "|", "-", "-", "+", "+", "+", "+")
+        dungeon_frame.addstr(0, 2, " dungeon ")
+
+        level = self.dungeon.current_level()
+        features = sorted(level.features)
+        for row, feature in enumerate(features, 1):
+            dungeon_frame.addnstr(row, 1, feature, width-2)
+
+        if len(features) == 0:
+            default = "(nothing yet...)"
+            dungeon_frame.addstr(1, (width / 2) - (len(default) / 2), default)
+
     def _redraw_status(self, window):
         """
         Redraw the status frame.
@@ -97,6 +117,7 @@ class Helper:
         # there's a repaint is a memory leak or not. For now I'm going to leave
         # it, but `status_frame` might have to be a property instead.
         status_frame = window.derwin(height, width, 0, 0)
+        status_frame.clear()
         status_frame.border("|", "|", "-", "-", "+", "+", "+", "+")
         status_frame.addstr(0, 2, " status ")
         statuses = self._get_statuses()
@@ -109,14 +130,16 @@ class Helper:
 
             attrs = reduce(lambda a, b: a | b, attrs, 0)
             status_frame.addnstr(row, 1, stat, width-2, attrs)
-        status_frame.refresh()
+        if len(statuses) == 0:
+            default = "(none)"
+            status_frame.addstr(1, (width / 2) - (len(default) / 2), default)
 
     def redraw(self, window):
         """
         Repaint the screen with the helper UI.
         """
-        window.clear()
         self._redraw_status(window)
+        self._redraw_dlvl(window)
         window.refresh()
 
 class Game:
