@@ -37,7 +37,7 @@ styles = {
     "blink": curses.A_BLINK,
 }
 
-def get_color(foreground, background, registered={}):
+def get_color(foreground, background=-1, registered={}):
     """
     Given a foreground and background color pair, return the curses
     attribute. If there isn't a color of that type registered yet, then
@@ -68,6 +68,10 @@ class Helper:
     `redraw` is called.
     """
 
+    height = 6 
+    status_width = 12
+    level_width = 25 
+
     def __init__(self, output_proxy):
         self.brain = brain.Brain(output_proxy)
         self.player = player.Player()
@@ -88,58 +92,83 @@ class Helper:
 
         return sorted(self.player.status, sort_statuses)
 
-    def _redraw_dlvl(self, window):
-        height, width = 10, 30 
-        # TODO: I'm unclear whether creating a derived window every time 
-        # there's a repaint is a memory leak or not. For now I'm going to leave
-        # it, but `dungeon_frame` might have to be a property instead.
-        dungeon_frame = window.derwin(height, width, 0, 15)
-        dungeon_frame.clear()
-        dungeon_frame.border("|", "|", "-", "-", "+", "+", "+", "+")
-        dungeon_frame.addstr(0, 2, " dungeon ")
+    def _top(self):
+        """
+        Return the y coordinate of the top of where the ui overlay should be
+        drawn.
+        """
+
+        for i in xrange(len(self.brain.term.display)-1, -1, -1):
+            row = i
+            line = self.brain.term.display[i].strip()
+            if len(line) > 0:
+                break
+        return row - self.height - 1
+
+    def _redraw_level(self):
+        """
+        Create the pane with information about this dungeon level.
+        """
 
         level = self.dungeon.current_level()
+        default = "(none)"
+
+        dungeon_frame = curses.newwin(self.height, self.level_width, self._top(), 0)
+        dungeon_frame.clear()
+        dungeon_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
+        dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
+
         features = sorted(level.features)
         for row, feature in enumerate(features, 1):
-            dungeon_frame.addnstr(row, 1, feature, width-2)
+            if row > self.height + 1:
+                break
+
+            dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
 
         if len(features) == 0:
-            default = "(nothing yet...)"
-            dungeon_frame.addstr(1, (width / 2) - (len(default) / 2), default)
+            dungeon_frame.addstr(1, (self.level_width/2) - (len(default)/2), default)
 
-    def _redraw_status(self, window):
+        return dungeon_frame
+
+    def _redraw_status(self):
         """
-        Redraw the status frame.
+        Create the pane with information about the player.
         """
 
-        height, width = 10, 15
-        # TODO: I'm unclear whether creating a derived window every time 
-        # there's a repaint is a memory leak or not. For now I'm going to leave
-        # it, but `status_frame` might have to be a property instead.
-        status_frame = window.derwin(height, width, 0, 0)
+        default = "(none)"
+
+        status_frame = curses.newwin(self.height, self.status_width, self._top(), self.level_width-1)
         status_frame.clear()
-        status_frame.border("|", "|", "-", "-", "+", "+", "+", "+")
-        status_frame.addstr(0, 2, " status ")
+        status_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
+        status_frame.addstr(0, 2, " status ", get_color(curses.COLOR_CYAN))
         statuses = self._get_statuses()
         for row, stat in enumerate(statuses, 1):
+            if row > self.height + 1:
+                # Hopefully we don't often encounter having too many statuses 
+                # to properly display
+                break
+
             attrs = []
             if status.type_of(stat) == "bad":
-                attrs += [curses.A_BOLD, get_color(curses.COLOR_RED, -1)]
-            elif status.type_of(stat) == "good":
-                attrs += [get_color(curses.COLOR_GREEN, -1)]
+                attrs += [get_color(curses.COLOR_RED)]
 
             attrs = reduce(lambda a, b: a | b, attrs, 0)
-            status_frame.addnstr(row, 1, stat, width-2, attrs)
+            status_frame.addnstr(row, 1, stat, self.status_width-2, attrs)
+
         if len(statuses) == 0:
-            default = "(none)"
-            status_frame.addstr(1, (width / 2) - (len(default) / 2), default)
+            status_frame.addstr(1, (self.status_width/2) - (len(default)/2), default)
+
+        return status_frame
 
     def redraw(self, window):
         """
         Repaint the screen with the helper UI.
         """
-        self._redraw_status(window)
-        self._redraw_dlvl(window)
+
+        status_frame = self._redraw_status()
+        dungeon_frame = self._redraw_level()
+        status_frame.overwrite(window)
+        dungeon_frame.overwrite(window)
         window.refresh()
 
 class Game:

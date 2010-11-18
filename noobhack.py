@@ -114,21 +114,14 @@ class Noobhack:
                 self.mode = "game"
             return False
 
-    def _helper(self, window):
-        """
-        Run the helper loop.
-        """
-
-        self.helper.redraw(window)
-        select.select([sys.stdin.fileno()], [], [])
-        self._toggle(sys.stdin.read(1))
-
     def _game(self, window):
         """
         Run the game loop.
         """
 
         self.game.redraw(window)
+        if self.mode == "help":
+            self.helper.redraw(window)
 
         # Let's wait until we have something to do...
         available = select.select(
@@ -153,10 +146,7 @@ class Noobhack:
         curses.use_default_colors()
 
         while True:
-            if self.mode == "game":
-                self._game(window)
-            else:
-                self._helper(window)
+            self._game(window)
 
 if __name__ == "__main__":
     hack = Noobhack()
