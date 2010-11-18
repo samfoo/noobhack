@@ -7,8 +7,8 @@ import getopt
 import select
 import curses
 
+import ui 
 import telnet
-import console
 import process
 import proxy
 
@@ -72,8 +72,8 @@ class Noobhack:
         self.output_proxy = proxy.Output(self.nethack)
         self.input_proxy = proxy.Input(self.nethack) 
 
-        self.game = console.Game(self.output_proxy)
-        self.helper = console.Helper()
+        self.game = ui.Game(self.output_proxy)
+        self.helper = ui.Helper(self.output_proxy)
 
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.

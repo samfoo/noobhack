@@ -1,42 +1,42 @@
-import re
-
-import dungeun
-import status 
+"""
+The events module is where all events based on gameplay are dispatched.
+"""
 
 class Dispatcher:
+    """
+    Simple event dispatcher. 
+    """
     def __init__(self):
         self.listeners = {}
 
     def add_event_listener(self, event, function):
-        if not self.listeners.has_key(event):
-            self.listeners[event] = []
+        """
+        Add an event listener.
 
-        self.listeners[event].append(function)
+        :param event: string name of the event
+        """
+
+        if not self.listeners.has_key(event):
+            self.listeners[event] = set() 
+
+        self.listeners[event].add(function)
 
     def remove_event_listener(self, event, function):
-        pass
+        """
+        Remove an event listener.
+
+        :param event: string name of the event
+        """
+
+        if self.listeners.has_key(event):
+            self.listeners[event].remove(function)
 
     def dispatch(self, event, **kwargs):
-        for l in self.listeners.get(event, []):
-            l(event, kwargs)
+        """
+        Dispatch an event.
+        """
 
-    def _dispatch_status_event(self, name, value):
-        self.dispatch("status", name=name, value=value)
-
-    def _dispatch_dungeon_event(self, name):
-        self.dispatch("dungeon", name=name)
-
-    def process(self, data):
-        for name, messages in dungeon.messages.iteritems():
-            for message in messages:
-                match = re.search(message, data, re.I | re.M)
-                if match is not None:
-                    self._dispatch_dungeon_event(name)
-
-        for name, messages in status.messages.iteritems():
-            for message, value in messages.iteritems():
-                match = re.search(message, data, re.I | re.M)
-                if match is not None:
-                    self._dispatch_status_event(name, value)
+        for listener in self.listeners.get(event, []):
+            listener(event, kwargs)
 
 dispatcher = Dispatcher()
