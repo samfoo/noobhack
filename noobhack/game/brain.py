@@ -30,6 +30,7 @@ class Brain:
 
         self.turn = 0
         self.dlvl = 0
+        self.prev_cursor = (0, 0)
 
     def _dispatch_level_feature_events(self, data):
         for feature, messages in game.sounds.messages.iteritems():
@@ -67,7 +68,7 @@ class Brain:
             dlvl = int(match.groups()[0])
             if dlvl != self.dlvl:
                 self.dlvl = dlvl
-                dispatcher.dispatch("level-change", "dungeon", self.dlvl)
+                dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
 
     def _dispatch_turn_change_event(self):
         """
@@ -101,3 +102,5 @@ class Brain:
         self._dispatch_level_change_event()
         self._dispatch_level_feature_events(data)
         self._dispatch_shop_entered_event(data)
+
+        self.prev_cursor = self.term.cursor()
