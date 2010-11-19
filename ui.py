@@ -68,7 +68,6 @@ class Helper:
     `redraw` is called.
     """
 
-    height = 6 
     status_width = 12
     level_width = 25 
 
@@ -92,6 +91,12 @@ class Helper:
 
         return sorted(self.player.status, sort_statuses)
 
+    def _height(self):
+        return 1 + max(1, max(
+            len(self.dungeon.current_level().features),
+            len(self._get_statuses())
+        ))
+
     def _top(self):
         """
         Return the y coordinate of the top of where the ui overlay should be
@@ -103,7 +108,7 @@ class Helper:
             line = self.brain.term.display[i].strip()
             if len(line) > 0:
                 break
-        return row - self.height - 1
+        return row - self._height() - 1
 
     def _redraw_level(self):
         """
@@ -113,14 +118,14 @@ class Helper:
         level = self.dungeon.current_level()
         default = "(none)"
 
-        dungeon_frame = curses.newwin(self.height, self.level_width, self._top(), 0)
+        dungeon_frame = curses.newwin(self._height(), self.level_width, self._top(), 0)
         dungeon_frame.clear()
         dungeon_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
 
         features = sorted(level.features)
         for row, feature in enumerate(features, 1):
-            if row > self.height + 1:
+            if row > self._height() + 1:
                 break
 
             dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
@@ -137,13 +142,13 @@ class Helper:
 
         default = "(none)"
 
-        status_frame = curses.newwin(self.height, self.status_width, self._top(), self.level_width-1)
+        status_frame = curses.newwin(self._height(), self.status_width, self._top(), self.level_width-1)
         status_frame.clear()
         status_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         status_frame.addstr(0, 2, " status ", get_color(curses.COLOR_CYAN))
         statuses = self._get_statuses()
         for row, stat in enumerate(statuses, 1):
-            if row > self.height + 1:
+            if row > self._height() + 1:
                 # Hopefully we don't often encounter having too many statuses 
                 # to properly display
                 break
