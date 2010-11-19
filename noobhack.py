@@ -1,5 +1,6 @@
 """
-noobhack helps you ascend at nethack.
+noobhack helps you ascend at nethack. You can press tab at anytime during the
+game to display the helper screen. Press tab again to dismiss it.
 """
 
 import sys

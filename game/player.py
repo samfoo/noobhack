@@ -11,15 +11,16 @@ class Player:
 
     def __init__(self):
         self.status = set() 
+        self.resistances = set()
         events.dispatcher.add_event_listener("status", self._status_handler)
 
     def __repr__(self):
         return repr(self.status)
 
-    def _status_handler(self, event, data):
-        name = data["name"]
-        value = data["value"]
+    def _resistance_handler(self, event, name):
+        self.resistances.add(name)
 
+    def _status_handler(self, event, name, value):
         if name in self.status and value == False:
             self.status.remove(name)
         elif name not in self.status and value == True:

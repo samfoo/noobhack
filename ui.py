@@ -1,6 +1,6 @@
 """
 The UI components of noobhack. `Game` draws and manages the actual nethack 
-game, while `Helper` draws the help/cheat screen.
+game, while `Helper` draws the help/cheat overlay.
 """
 
 import sys
@@ -68,6 +68,7 @@ class Helper:
     `redraw` is called.
     """
 
+    resistance_width = 12
     status_width = 12
     level_width = 25 
 
@@ -92,9 +93,15 @@ class Helper:
         return sorted(self.player.status, sort_statuses)
 
     def _height(self):
+        """
+        Return the height of the helper ui. This means finding the max number
+        of lines that is to be displayed in all of the boxes. 
+        """
+
         return 1 + max(1, max(
             len(self.dungeon.current_level().features),
-            len(self._get_statuses())
+            len(self._get_statuses()),
+            len(self.player.resistances),
         ))
 
     def _top(self):
@@ -110,7 +117,7 @@ class Helper:
                 break
         return row - self._height() - 1
 
-    def _redraw_level(self):
+    def _level_box(self):
         """
         Create the pane with information about this dungeon level.
         """
@@ -118,41 +125,82 @@ class Helper:
         level = self.dungeon.current_level()
         default = "(none)"
 
-        dungeon_frame = curses.newwin(self._height(), self.level_width, self._top(), 0)
+        dungeon_frame = curses.newwin(
+            self._height(), 
+            self.level_width, 
+            self._top(), 
+            0
+        )
+
         dungeon_frame.clear()
         dungeon_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
 
         features = sorted(level.features)
         for row, feature in enumerate(features, 1):
-            if row > self._height() + 1:
-                break
-
             dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
 
         if len(features) == 0:
-            dungeon_frame.addstr(1, (self.level_width/2) - (len(default)/2), default)
+            center = (self.level_width / 2) - (len(default) / 2)
+            dungeon_frame.addstr(1, center, default)
 
         return dungeon_frame
 
-    def _redraw_status(self):
+    def _resistance_box(self):
         """
-        Create the pane with information about the player.
+        Create the pane with information with the player's current resistances.
         """
 
         default = "(none)"
 
-        status_frame = curses.newwin(self._height(), self.status_width, self._top(), self.level_width-1)
+        def res_color(res):
+            """Return the color of a resistance."""
+            if res == "fire": return curses.COLOR_RED
+            elif res == "cold": return curses.COLOR_BLUE 
+            elif res == "poison": return curses.COLOR_GREEN
+            elif res == "disintegration": return curses.COLOR_YELLOW
+            else: return -1
+
+        res_frame = curses.newwin(
+            self._height(), 
+            self.resistance_width, 
+            self._top(), 
+            self.level_width + self.status_width - 2
+        )
+
+        res_frame.clear()
+        res_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
+        res_frame.addstr(0, 2, " resist ", get_color(curses.COLOR_CYAN))
+        resistances = sorted(self.player.resistances)
+        for row, res in enumerate(resistances, 1):
+            color = get_color(res_color(res))
+            res_frame.addnstr(row, 1, res, self.resistance_width-2, color)
+
+        if len(resistances) == 0:
+            center = (self.resistance_width / 2) - (len(default) / 2)
+            res_frame.addstr(1, center, default)
+
+        return res_frame
+
+    def _status_box(self):
+        """
+        Create the pane with information about the player's current state.
+        """
+
+        default = "(none)"
+
+        status_frame = curses.newwin(
+            self._height(), 
+            self.status_width, 
+            self._top(), 
+            self.level_width - 1
+        )
+
         status_frame.clear()
         status_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         status_frame.addstr(0, 2, " status ", get_color(curses.COLOR_CYAN))
         statuses = self._get_statuses()
         for row, stat in enumerate(statuses, 1):
-            if row > self._height() + 1:
-                # Hopefully we don't often encounter having too many statuses 
-                # to properly display
-                break
-
             attrs = []
             if status.type_of(stat) == "bad":
                 attrs += [get_color(curses.COLOR_RED)]
@@ -161,7 +209,8 @@ class Helper:
             status_frame.addnstr(row, 1, stat, self.status_width-2, attrs)
 
         if len(statuses) == 0:
-            status_frame.addstr(1, (self.status_width/2) - (len(default)/2), default)
+            center = (self.status_width / 2) - (len(default) / 2)
+            status_frame.addstr(1, center, default)
 
         return status_frame
 
@@ -170,10 +219,14 @@ class Helper:
         Repaint the screen with the helper UI.
         """
 
-        status_frame = self._redraw_status()
-        dungeon_frame = self._redraw_level()
+        status_frame = self._status_box()
+        dungeon_frame = self._level_box()
+        resist_frame = self._resistance_box()
+
         status_frame.overwrite(window)
         dungeon_frame.overwrite(window)
+        resist_frame.overwrite(window)
+
         window.refresh()
 
 class Game:
