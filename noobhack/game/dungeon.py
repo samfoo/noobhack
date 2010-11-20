@@ -6,6 +6,58 @@ messages = {
     "trap-door": set(("A trap door opens up under you!",))
 }
 
+def looks_like_mines(display):
+    """
+    Gnomish Mines:
+    
+    Since we don't get a message about being in the mines, we have to
+    guess whether we're in the mines or not. There are some features
+    unique to the mines that we can use to make a pretty educated
+    guess that we're there. Easiest is that the walls are typically irregular
+    in the mines:
+    
+    e.g.
+    
+         --   or  --   or  --    or  --
+        --         --        --        --
+    
+    Would indicate that we're in the mines.
+    """
+
+    def indices(row):
+        # Find the indices of all double dashes in the string.
+        found = []
+        i = 0
+        try:
+            while True: 
+                occurance = row.index("--", i)
+                found.append(occurance)
+                i = occurance + 1
+        except ValueError:
+            pass
+
+        return found
+
+    def mines(first, second):
+        for index in first:
+            for other_index in second:
+                if index == other_index + 1 or \
+                   other_index == index + 1 or \
+                   index == other_index + 2 or \
+                   other_index == index + 2:
+                    return True
+        return False
+
+    scanned = [indices(row) for row in display]
+    for i in xrange(len(scanned)):
+        if i + 1 == len(scanned):
+            break
+        above, below = scanned[i], scanned[i+1]
+        if mines(above, below):
+            return True
+
+    return False
+
 class Map:
     def __init__(self):
         self.levels = {1: [Level(1)]} 
@@ -178,6 +230,7 @@ class Map:
 class Level:
     def __init__(self, dlvl, branch="main"):
         self.features = set()
+        self.shops = set()
         self.ups = set()
         self.downs = set()
         self.dlvl = dlvl
@@ -227,11 +280,9 @@ class Dungeon:
                                       self._shop_type_handler)
 
     def _shop_type_handler(self, _, shop_type):
-        if "shop" in self.current_level().features:
-            # Remove the generic shop now that we know what type of shop it is.
-            self.current_level().features.remove("shop")
-        self.current_level().features.add("shop (%s)" % \
-                                          game.shops.types[shop_type]) 
+        if "shop" not in self.current_level().features:
+            self.current_leve().features.add("shop")
+        self.current_level().shops.add(game.shops.types[shop_type]) 
 
     def _branch_change_handler(self, _, branch):
         self.graph.branch(branch)
