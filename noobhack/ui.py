@@ -179,12 +179,14 @@ class Map:
             "h": "Beehive",
         }
 
-        legend = curses.newwin(11, 20, 1, 3)
+        legend = curses.newwin(14, 20, 1, 3)
         legend.border("|", "|", "-", "-", "+", "+", "+", "+")
         legend.addstr(0, 3, " Legend: ")
+        legend.addstr(1, 2, "Press ` to exit", curses.A_BOLD)
+        legend.addstr(2, 2, "j, k to scroll", curses.A_BOLD)
 
         codes = sorted(items.keys())
-        for i, code in enumerate(codes, 1):
+        for i, code in enumerate(codes, 4):
             legend.addstr(i, 2, "%s" % code, curses.A_BOLD)
             legend.addstr(i, 20 - len(items[code]) - 2, items[code])
 
@@ -280,8 +282,9 @@ class Helper:
         of lines that is to be displayed in all of the boxes. 
         """
 
+        level = self.dungeon.current_level()
         return 1 + max(1, max(
-            len(self.dungeon.current_level().features),
+            len(level.features) + len(level.shops),
             len(self._get_statuses()),
             len(self.player.resistances),
         ))
@@ -319,6 +322,19 @@ class Helper:
         dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
 
         features = sorted(level.features)
+        row = 1
+        i = 0
+        while i < len(features):
+            feature = features[i]
+            dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
+            row += 1
+            i += 1
+
+            if feature == "shop":
+                for shop in sorted(level.shops):
+                    dungeon_frame.addnstr(row, 3, "* " + shop, self.level_width-5)
+                    row += 1
+
         for row, feature in enumerate(features, 1):
             dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
 
