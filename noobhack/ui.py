@@ -62,6 +62,150 @@ def size():
     raw = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
     return struct.unpack('hh', raw) 
 
+class Map:
+    def __init__(self, output_proxy):
+        self.brain = brain.Brain(output_proxy)
+        self.player = player.Player()
+        self.dungeon = dungeon.Dungeon()
+        self.columns = {}
+
+    def _draw_level(self, window, y, x, level, current=False):
+        if len(level.features) > 0:
+            features = ",".join(level.short_codes())
+        else:
+            features = "?"
+
+        title = " %s:%d " % (level.branch, level.dlvl)
+
+        height = 3
+        width = max(len(features), len(title) + 2) + 2 
+
+        draw_x = x - (width / 2)
+        draw_y = y - 1
+
+        node = window.derwin(height, width, draw_y, draw_x)
+        node.border("|", "|", "-", "-", "+", "+", "+", "+")
+
+        if current:
+            node.addstr(0, 2, title, curses.A_BOLD | get_color(curses.COLOR_YELLOW))
+        else:
+            node.addstr(0, 2, title)
+
+        node.addstr(1, (width / 2) - (len(features) / 2), features)
+
+        return draw_x, draw_y
+
+    def _get_level_x(self, level):
+        return self.columns[level.branch] 
+
+    def _get_level_y(self, level):
+        return level.dlvl * 4 + (size()[0] / 2) 
+
+    def _r_draw_branch(self, window, level):
+        x, y = self._get_level_x(level), self._get_level_y(level)
+
+        graph = self.dungeon.graph
+
+        # The first thing we can do is draw the current level... 
+        is_current = level == graph.current
+        drawn_x, drawn_y = self._draw_level(window, y, x, level, is_current)
+
+        if graph.is_orphan(level):
+            window.addstr(drawn_y - 1, x, "*", curses.A_BOLD | get_color(curses.COLOR_RED))
+
+        # Now draw any links that this current level has with others...
+        children = graph.children(level)
+
+        for child in children:
+            self._r_draw_branch(window, child)
+
+            # Now draw the link.
+            child_x = self._get_level_x(child)
+            if child_x == x:
+                # Same column, just add a down pipe.
+                window.addstr(y + 2, x, "|", get_color(curses.COLOR_CYAN))
+            elif child_x < x:
+                # Column to the left...
+                slash_x = (child_x + 7)
+                window.addstr(y + 2, slash_x, "/", get_color(curses.COLOR_CYAN))
+                connector_x = slash_x + 1
+                connector = "." + "-" * (drawn_x - slash_x - 2)
+                window.addstr(y + 1, slash_x + 1, connector, get_color(curses.COLOR_CYAN))
+            else:
+                # Column to the right...
+                slash_x = (child_x - 7)
+                window.addstr(y + 2, slash_x, "\\", get_color(curses.COLOR_CYAN))
+                connector_x = x + (x - drawn_x)
+                connector = ("-" * (slash_x - connector_x - 1)) + "."
+                window.addstr(y + 1, connector_x, connector, get_color(curses.COLOR_CYAN))
+
+    def _draw_legend(self):
+        items = {
+            "o": "Oracle",
+            "r": "Rogue",
+            "a[cnl]": "Altar",
+            "w": "Angry watch",
+            "z": "Zoo",
+            "b": "Barracks",
+            "s": "Shop",
+            "v": "Vault",
+            "h": "Beehive",
+        }
+
+        legend = curses.newwin(11, 20, 0, 0)
+        legend.border("|", "|", "-", "-", "+", "+", "+", "+")
+        legend.addstr(0, 3, " Legend: ")
+
+        codes = sorted(items.keys())
+        for i, code in enumerate(codes, 1):
+            legend.addstr(i, 2, "%s" % code, curses.A_BOLD)
+            legend.addstr(i, 20 - len(items[code]) - 2, items[code])
+
+        return legend
+
+    def display(self, window, close="`"):
+        """
+        Draw the map ui.
+        """
+
+        approx_height = max(self.dungeon.graph.levels.keys()) * 4 + size()[0] 
+        approx_width = size()[1]
+        plane = curses.newpad(approx_height, approx_width)
+
+        # Ghetto fabulous hard coded numbers. But I want the map to display the
+        # same every game, and I know something about what branches there's 
+        # going to be.
+        self.columns["main"] = approx_width / 2
+        self.columns["mines"] = (approx_width / 2) - 20 
+        self.columns["sokoban"] = (approx_width / 2) + 20 
+
+        self._r_draw_branch(plane, self.dungeon.graph.first())
+
+        # Don't forget to draw the orphaned levels too...
+        for dlvl in [lvl for lvl in self.dungeon.graph.levels.keys() if lvl != 1]:
+            for orphan in self.dungeon.graph.orphans(dlvl):
+                self._r_draw_branch(plane, orphan)
+
+        scroll_y = self._get_level_y(self.dungeon.graph.current) 
+        scroll_y -= size()[0] / 2
+        while True:
+            legend = self._draw_legend()
+            plane.noutrefresh(scroll_y, 0, 0, 0, size()[0] - 1, size()[1] - 1)
+            legend.noutrefresh()
+            
+            window.move(window.getmaxyx()[0] - 1, 0)
+            window.noutrefresh()
+
+            curses.doupdate()
+
+            key = sys.stdin.read(1)
+            if key == "k":
+                scroll_y = max(scroll_y - 1, 4) 
+            elif key == "j":
+                scroll_y = min(scroll_y + 1, approx_height - size()[0])
+            elif key == close:
+                break
+
 class Helper:
     """
     Maintain the state of the helper UI and draw it to a curses screen when

@@ -107,6 +107,27 @@ class Map:
             # We've never seen this place before for sure.
             return None
 
+    def is_orphan(self, level):
+        return level in self.orphans(level.dlvl)
+
+    def orphans(self, dlvl):
+        levels = self.levels[dlvl]
+        return [level for level in levels if len(level.ups) == 0]
+
+    def children(self, level):
+        dlvl = level.dlvl
+        links = self.links.get((dlvl, dlvl + 1), set())
+        return [
+            self.levels_for_link(dlvl, link[0], dlvl+1, link[1])[1] 
+            for 
+                link in links 
+            if 
+                link[0] in level.downs
+        ]
+
+    def first(self):
+        return self.levels[1][0]
+
     def branch(self, branch):
         self.current.branch = branch
 
@@ -157,10 +178,10 @@ class Map:
 
         if (above_pos, below_pos) in self.links.get((above, below), set()):
             # There's already a link, we just need to get the levels.
-            above_lvl, below_lvl = self._get_levels_for_link(above, 
-                                                             above_pos, 
-                                                             below, 
-                                                             below_pos)
+            above_lvl, below_lvl = self.levels_for_link(above, 
+                                                        above_pos, 
+                                                        below, 
+                                                        below_pos)
             if from_dlvl < to_dlvl:
                 self.current = below_lvl
             else:
@@ -200,7 +221,7 @@ class Map:
             # There's no link, so create it.
             self._link(above, above_pos, below, below_pos)
 
-    def _get_levels_for_link(self, above, above_pos, below, below_pos):
+    def levels_for_link(self, above, above_pos, below, below_pos):
         possibles = self.links.get((above, below), set())
         if (above_pos, below_pos) in possibles:
             aboves = self.levels.get(above, [])
@@ -236,10 +257,27 @@ class Level:
         self.dlvl = dlvl
         self.branch = branch 
 
+    def short_codes(self):
+        items = {
+            "oracle": "o",
+            "rogue": "r",
+            "altar": "a",
+            "altar (c)": "ac",
+            "altar (n)": "an",
+            "altar (l)": "al",
+            "angry watch": "w",
+            "zoo": "z",
+            "barracks": "b",
+            "shop": "s",
+            "vault": "v",
+            "beehive": "h",
+        }
+
+        codes = [items[f] for f in self.features if items.has_key(f)]
+        return sorted(codes)
+
     def __str__(self):
-        return "Dlvl(%s):%d(%s)" % (self.branch, \
-                                    self.dlvl, \
-                                    ",".join([f[0] for f in self.features]))
+        return "Dlvl(%s):%d(%s)" % (self.branch, self.dlvl, ",".join(self.short_codes))
 
     def __repr__(self):
         return "<level(%s): %s>" % (self.branch, repr({
@@ -278,10 +316,12 @@ class Dungeon:
                                       self._level_feature_handler)
         dispatcher.add_event_listener("shop-type",
                                       self._shop_type_handler)
+        dispatcher.add_event_listener("level-teleport",
+                                      self._level_teleport_handler)
 
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
-            self.current_leve().features.add("shop")
+            self.current_level().features.add("shop")
         self.current_level().shops.add(game.shops.types[shop_type]) 
 
     def _branch_change_handler(self, _, branch):
@@ -289,6 +329,9 @@ class Dungeon:
 
     def _level_feature_handler(self, _, feature):
         self.current_level().features.add(feature)
+
+    def _level_teleport_handler(self, _):
+        self.went_through_lvl_tel = True
 
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:

@@ -10,6 +10,7 @@ import vt102
 import ui 
 import game.status
 import game.sounds
+import game.dungeon
 
 from game.events import dispatcher
 
@@ -62,8 +63,13 @@ class Brain:
         return line
 
     def _dispatch_branch_change_event(self):
-        if 2 < self.dlvl <= 5 and dungeon.looks_like_mines(self.term.display):
+        if 2 < self.dlvl <= 5 and game.dungeon.looks_like_mines(self.term.display):
             dispatcher.dispatch("branch-change", "mines")
+
+    def _dispatch_level_teleport_event(self, data):
+        match = re.search("Restoring save file...", data)
+        if match is not None:
+            dispatcher.dispatch("level-teleport")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
@@ -103,6 +109,7 @@ class Brain:
 
         self._dispatch_status_events(data)
         self._dispatch_turn_change_event()
+        self._dispatch_level_teleport_event(data)
         self._dispatch_level_change_event()
         self._dispatch_level_feature_events(data)
         self._dispatch_branch_change_event()

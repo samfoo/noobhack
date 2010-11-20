@@ -64,9 +64,10 @@ class Noobhack:
     sure the screen gets updated as necessary.
     """
 
-    def __init__(self, toggle="\t"):
+    def __init__(self, toggle_help="\t", toggle_map="`"):
         self.options = parse_options()
-        self.toggle = toggle
+        self.toggle_help = toggle_help
+        self.toggle_map = toggle_map
         self.mode = "game"
 
         self.nethack = self.connect_to_game() 
@@ -75,6 +76,7 @@ class Noobhack:
 
         self.game = ui.Game(self.output_proxy)
         self.helper = ui.Helper(self.output_proxy)
+        self.dungeon = ui.Map(self.output_proxy)
 
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.
@@ -108,17 +110,27 @@ class Noobhack:
         Toggle between game mode and help mode.
         """
 
-        if key == self.toggle:
+        if key == self.toggle_help:
             if self.mode == "game":
                 self.mode = "help"
             else:
                 self.mode = "game"
+            return False
+        elif key == self.toggle_map:
+            self.mode = "map"
             return False
 
     def _game(self, window):
         """
         Run the game loop.
         """
+
+        if self.mode == "map":
+            self.dungeon.display(window, self.toggle_map)
+            # Map mode handles it's own input. Make sure that we don't get
+            # forever stuck in map mode by toggling back out of it when it's
+            # done.
+            self.mode = "game"
 
         self.game.redraw(window)
         if self.mode == "help":
