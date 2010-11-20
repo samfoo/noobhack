@@ -63,6 +63,11 @@ def size():
     return struct.unpack('hh', raw) 
 
 class Map:
+    """
+    Map is the graphical representation of the level graph. It draws the map on
+    the entire screen and allows vertical scrolling with the 'j' and 'k' keys.
+    """
+
     def __init__(self, output_proxy):
         self.brain = brain.Brain(output_proxy)
         self.player = player.Player()
@@ -70,6 +75,10 @@ class Map:
         self.columns = {}
 
     def _draw_level(self, window, y, x, level, current=False):
+        """
+        Draw the box for an individual level at (x, y). 
+        """
+
         if len(level.features) > 0:
             features = ",".join(level.short_codes())
         else:
@@ -87,7 +96,8 @@ class Map:
         node.border("|", "|", "-", "-", "+", "+", "+", "+")
 
         if current:
-            node.addstr(0, 2, title, curses.A_BOLD | get_color(curses.COLOR_YELLOW))
+            node.addstr(0, 2, title, 
+                        curses.A_BOLD | get_color(curses.COLOR_YELLOW))
         else:
             node.addstr(0, 2, title)
 
@@ -96,12 +106,22 @@ class Map:
         return draw_x, draw_y
 
     def _get_level_x(self, level):
+        """
+        Given a level, return the x-coord where its box should be drawn.
+        """
         return self.columns[level.branch] 
 
     def _get_level_y(self, level):
+        """
+        Given a level, return the y-coord where its box should be drawn.
+        """
         return level.dlvl * 4 + (size()[0] / 2) 
 
     def _r_draw_branch(self, window, level):
+        """
+        Starting at `level` draw all of the children and all of their children.
+        """
+
         x, y = self._get_level_x(level), self._get_level_y(level)
 
         graph = self.dungeon.graph
@@ -111,7 +131,8 @@ class Map:
         drawn_x, drawn_y = self._draw_level(window, y, x, level, is_current)
 
         if graph.is_orphan(level):
-            window.addstr(drawn_y - 1, x, "*", curses.A_BOLD | get_color(curses.COLOR_RED))
+            window.addstr(drawn_y - 1, x, "*", 
+                          curses.A_BOLD | get_color(curses.COLOR_RED))
 
         # Now draw any links that this current level has with others...
         children = graph.children(level)
@@ -130,7 +151,8 @@ class Map:
                 window.addstr(y + 2, slash_x, "/", get_color(curses.COLOR_CYAN))
                 connector_x = slash_x + 1
                 connector = "." + "-" * (drawn_x - slash_x - 2)
-                window.addstr(y + 1, slash_x + 1, connector, get_color(curses.COLOR_CYAN))
+                window.addstr(y + 1, slash_x + 1, connector, 
+                              get_color(curses.COLOR_CYAN))
             else:
                 # Column to the right...
                 slash_x = (child_x - 7)
@@ -140,6 +162,10 @@ class Map:
                 window.addstr(y + 1, connector_x, connector, get_color(curses.COLOR_CYAN))
 
     def _draw_legend(self):
+        """
+        Create the legend box in the upper left.
+        """
+
         items = {
             "o": "Oracle",
             "r": "Rogue",
@@ -152,7 +178,7 @@ class Map:
             "h": "Beehive",
         }
 
-        legend = curses.newwin(11, 20, 0, 0)
+        legend = curses.newwin(11, 20, 1, 3)
         legend.border("|", "|", "-", "-", "+", "+", "+", "+")
         legend.addstr(0, 3, " Legend: ")
 
@@ -189,15 +215,25 @@ class Map:
         scroll_y = self._get_level_y(self.dungeon.graph.current) 
         scroll_y -= size()[0] / 2
         while True:
+            # To get the legend flicker-free we need to draw everything first,
+            # call noutrefresh() to refresh curses' screen buffer, but not to
+            # copy it to the screen yet. After we've done all that we can
+            # refresh the screen.
             legend = self._draw_legend()
             plane.noutrefresh(scroll_y, 0, 0, 0, size()[0] - 1, size()[1] - 1)
             legend.noutrefresh()
-            
+
+            # For some reason, curses *really* wants the cursor to below to the
+            # main window, no matter who used it last. Regardless, just move it
+            # to the lower left so it's out of the way.
             window.move(window.getmaxyx()[0] - 1, 0)
             window.noutrefresh()
 
             curses.doupdate()
 
+            # Wait around until we get some input.
+            # TODO: I suspect in longer games pgup, pgdown are going to be 
+            # important. Implement them here.
             key = sys.stdin.read(1)
             if key == "k":
                 scroll_y = max(scroll_y - 1, 4) 

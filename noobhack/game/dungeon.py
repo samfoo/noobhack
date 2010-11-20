@@ -1,3 +1,10 @@
+"""
+I'm chock full of classes and methods and constants and whatnot that keep track
+of the state of the dungeon while a game is being played. That is to say: which
+levels are where, what features the levels have, where it's entrances and exits
+are, etc.
+"""
+
 import game.shops 
 
 from game.events import dispatcher
@@ -59,26 +66,51 @@ def looks_like_mines(display):
     return False
 
 class Map:
+    """
+    Ahh, the map. The nethack text client, unfortunately doesn't always give us
+    the best clues about what level or branch we're on. Instead we have to make
+    our best guess. To make matters worst: Level teleports and trap doors add 
+    to the confusion and the dungeon becomes a set of graphs that connect at 
+    some point, but figuring out what those points are and tracking everything
+    is really complex (see the mostrosity that is `move`).
+
+    The way we keep track of connections is two-fold:
+
+        1. We keep track of links between levels. The links between dlvl 1 and 
+        dlvl 2, for example, are all kept in the links hash under the key
+        `(1, 2)`. When the player travels from dlvl 1 to dlvl2, we know what
+        her position was before she arrived and her position after she arrived.
+        All of these together form a link. E.g. `{(1, 2): ((1, 2), (3, 4))}`
+        would be a link from dlvl 1 to 2, where the top position is `(1, 2)` 
+        and the bottom position is `(3, 4)`.
+        2. Each level keeps track of it's own entrances and exits (ups and 
+        downs)
+
+    With this information we can contruct a sparse graph of the entire dungeon.
+    As we see new levels and new stairwells, the links are automatically 
+    created.
+    """
+
     def __init__(self):
         self.levels = {1: [Level(1)]} 
         self.links = {}
         self.current = self.levels[1][0]
 
-    def _add(self, at, level):
+    def _add(self, at_dlvl, level):
         """
         Add a dungeon level. This doesn't check to see if a dungeon level
         exists or is part of the interpreted graph. Generally, `move` should be
         used instead.
 
-        :param at: int dungeon level to add the level at.
+        :param at_dlvl: int dungeon level to add the level at.
         :param level: The `Level` to add.
         """
 
-        dlvl = self.levels.get(at, []) 
+        dlvl = self.levels.get(at_dlvl, []) 
         dlvl.append(level)
-        self.levels[at] = dlvl 
+        self.levels[at_dlvl] = dlvl 
 
-    def _guess_teleported(self, from_dlvl, to_dlvl):
+    def _guess_teleported(self, to_dlvl):
         """
         Attempts to find a "best guess" level that we've already seen that was
         teleported to.
@@ -108,13 +140,27 @@ class Map:
             return None
 
     def is_orphan(self, level):
+        """
+        Return whether the level is an orphan or not. An orphan is a level with
+        no levels above that connect to it.
+        """
+
         return level in self.orphans(level.dlvl)
 
     def orphans(self, dlvl):
+        """
+        Return a list of all orphans on a particular dlvl.
+        """
+
         levels = self.levels[dlvl]
         return [level for level in levels if len(level.ups) == 0]
 
     def children(self, level):
+        """
+        Return a list of all children of a level. Children are those levels 
+        one level below and directly connected to the parent via stairwells.
+        """
+
         dlvl = level.dlvl
         links = self.links.get((dlvl, dlvl + 1), set())
         return [
@@ -126,9 +172,17 @@ class Map:
         ]
 
     def first(self):
+        """
+        Return the starting level.
+        """
+
         return self.levels[1][0]
 
     def branch(self, branch):
+        """
+        Mark the current level as a branch.
+        """
+
         self.current.branch = branch
 
     def teleport(self, from_dlvl, to_dlvl):
@@ -136,7 +190,7 @@ class Map:
         Transition from one dungeon level to another by teleport.
         """
 
-        guess = self._guess_teleported(from_dlvl, to_dlvl)
+        guess = self._guess_teleported(to_dlvl)
 
         if from_dlvl > to_dlvl and guess is None:
             # We're moving up, so there's one extra heuristic we can do:
@@ -222,6 +276,18 @@ class Map:
             self._link(above, above_pos, below, below_pos)
 
     def levels_for_link(self, above, above_pos, below, below_pos):
+        """
+        Given two dungeon levels and two positions, return the levels (above,
+        and below) which form this link.
+
+        :param above: the dungeon level above
+        :param above_pos: a tuple (x, y) position of the above (down) stairs
+        :param below: the dungeon level below
+        :param below_pos: a tuple (x, y) position of the below (up) stairs
+
+        :return: a tuple of the Level objects, (above, below)
+        """
+
         possibles = self.links.get((above, below), set())
         if (above_pos, below_pos) in possibles:
             aboves = self.levels.get(above, [])
@@ -249,6 +315,26 @@ class Map:
         self.links[(above, below)] = current
 
 class Level:
+    """
+    A level is a single dungeon level. This can be thought of as "mines, level 
+    3", or "main, level 5". There can be multiple levels of the same dlvl, but
+    they must be on different branches.
+    """
+    codemap = {
+        "oracle": "o",
+        "rogue": "r",
+        "altar": "a",
+        "altar (c)": "ac",
+        "altar (n)": "an",
+        "altar (l)": "al",
+        "angry watch": "w",
+        "zoo": "z",
+        "barracks": "b",
+        "shop": "s",
+        "vault": "v",
+        "beehive": "h",
+    }
+
     def __init__(self, dlvl, branch="main"):
         self.features = set()
         self.shops = set()
@@ -258,26 +344,13 @@ class Level:
         self.branch = branch 
 
     def short_codes(self):
-        items = {
-            "oracle": "o",
-            "rogue": "r",
-            "altar": "a",
-            "altar (c)": "ac",
-            "altar (n)": "an",
-            "altar (l)": "al",
-            "angry watch": "w",
-            "zoo": "z",
-            "barracks": "b",
-            "shop": "s",
-            "vault": "v",
-            "beehive": "h",
-        }
+        """
+        Return the list of short codes (useful for displaying information about
+        a level when space is limited).
+        """
 
-        codes = [items[f] for f in self.features if items.has_key(f)]
+        codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
         return sorted(codes)
-
-    def __str__(self):
-        return "Dlvl(%s):%d(%s)" % (self.branch, self.dlvl, ",".join(self.short_codes))
 
     def __repr__(self):
         return "<level(%s): %s>" % (self.branch, repr({
