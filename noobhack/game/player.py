@@ -10,10 +10,9 @@ class Player:
     def __init__(self):
         self.status = set() 
         self.resistances = set()
-        events.dispatcher.add_event_listener("status", self._status_handler)
 
-    def __repr__(self):
-        return repr(self.status)
+    def listen(self):
+        events.dispatcher.add_event_listener("status", self._status_handler)
 
     def _resistance_handler(self, event, name):
         self.resistances.add(name)

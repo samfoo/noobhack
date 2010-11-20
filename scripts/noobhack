@@ -10,7 +10,7 @@ import curses
 import cPickle as pickle
 
 from noobhack import ui, telnet, process, proxy
-from noobhack.game import player, dungeon
+from noobhack.game import player, dungeon, brain
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]
@@ -76,14 +76,17 @@ class Noobhack:
         self.input_proxy = proxy.Input(self.nethack) 
 
         self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
+        self.player.listen()
+        self.dungeon.listen()
 
         self.output_proxy.register(self._restore_game_checker)
         self.output_proxy.register(self._game_started_checker)
         self.output_proxy.register(self._quit_or_died_checker)
 
+        self.brain = brain.Brain(self.output_proxy)
         self.game = ui.Game(self.output_proxy)
-        self.helper = ui.Helper(self.output_proxy, self.player, self.dungeon)
-        self.map = ui.Map(self.output_proxy, self.player, self.dungeon)
+        self.helper = ui.Helper(self.brain, self.player, self.dungeon)
+        self.map = ui.Map(self.brain, self.player, self.dungeon)
 
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.
@@ -116,6 +119,10 @@ class Noobhack:
             # If nethack is reloading its game data, then we should reload 
             # ours.
             self.player, self.dungeon = self.load()
+            self.player.listen()
+            self.dungeon.listen()
+            self.helper = ui.Helper(self.brain, self.player, self.dungeon)
+            self.map = ui.Map(self.brain, self.player, self.dungeon)
             self.output_proxy.unregister(self._restore_game_checker)
 
     def load(self):

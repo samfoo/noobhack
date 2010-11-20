@@ -11,7 +11,7 @@ import termios
 
 import vt102 
 
-from game import player, dungeon, brain, status
+from game import player, dungeon, status
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
@@ -68,8 +68,8 @@ class Map:
     the entire screen and allows vertical scrolling with the 'j' and 'k' keys.
     """
 
-    def __init__(self, output_proxy, player, dungeon):
-        self.brain = brain.Brain(output_proxy)
+    def __init__(self, brain, player, dungeon):
+        self.brain = brain
         self.columns = {}
 
         self.player = player
@@ -253,8 +253,8 @@ class Helper:
     status_width = 12
     level_width = 25 
 
-    def __init__(self, output_proxy, player, dungeon):
-        self.brain = brain.Brain(output_proxy)
+    def __init__(self, brain, player, dungeon):
+        self.brain = brain
 
         self.player = player
         self.dungeon = dungeon

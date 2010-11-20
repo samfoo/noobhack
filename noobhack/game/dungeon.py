@@ -205,6 +205,10 @@ class Map:
             # eliminated the possibility that we're in our current 
             # branch, but maybe we're in the main branch.
             guess = [l for l in self.levels[to_dlvl] if l.branch == "main"]
+            if len(guess) > 0:
+                guess = guess[0]
+            else:
+                guess = None
 
         if guess is not None:
             self.current = guess
@@ -358,12 +362,6 @@ class Level:
         codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
         return sorted(codes)
 
-    def __repr__(self):
-        return "<level(%s): %s>" % (self.branch, repr({
-            "ups": list(self.ups),
-            "downs": list(self.downs),
-        }))
-
     def __eq__(self, other):
         if other is None or other.__class__ is not Level:
             return False
@@ -387,6 +385,7 @@ class Dungeon:
         self.fell_through_trap = False
         self.went_through_lvl_tel = False
 
+    def listen(self):
         dispatcher.add_event_listener("level-change", 
                                       self._level_change_handler)
         dispatcher.add_event_listener("branch-change",
