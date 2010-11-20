@@ -68,11 +68,12 @@ class Map:
     the entire screen and allows vertical scrolling with the 'j' and 'k' keys.
     """
 
-    def __init__(self, output_proxy):
+    def __init__(self, output_proxy, player, dungeon):
         self.brain = brain.Brain(output_proxy)
-        self.player = player.Player()
-        self.dungeon = dungeon.Dungeon()
         self.columns = {}
+
+        self.player = player
+        self.dungeon = dungeon
 
     def _draw_level(self, window, y, x, level, current=False):
         """
@@ -252,10 +253,11 @@ class Helper:
     status_width = 12
     level_width = 25 
 
-    def __init__(self, output_proxy):
+    def __init__(self, output_proxy, player, dungeon):
         self.brain = brain.Brain(output_proxy)
-        self.player = player.Player()
-        self.dungeon = dungeon.Dungeon()
+
+        self.player = player
+        self.dungeon = dungeon
 
     def _get_statuses(self):
         """

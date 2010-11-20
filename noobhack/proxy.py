@@ -39,7 +39,10 @@ class Input:
         """
         key = sys.stdin.read(1)
 
-        for callback in self.callbacks:
+        # Make the callback set a list because callbacks should be able to 
+        # unregister themselves if they want and they can't do that while 
+        # iterating over the set, so we need a copy.
+        for callback in list(self.callbacks):
             if callback(key) is False:
                 return
 
@@ -79,5 +82,8 @@ class Output:
         """
         output = self.game.read()
 
-        for callback in self.callbacks:
+        # Make the callback set a list because callbacks should be able to 
+        # unregister themselves if they want and they can't do that while 
+        # iterating over the set, so we need a copy.
+        for callback in list(self.callbacks):
             callback(output)

@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-"""
-noobhack helps you ascend at nethack. You can press tab at anytime during the
-game to display the helper overlay. Press tab again to dismiss it.
-"""
 
+import os
+import re
 import sys
 import getopt
 import select
 import curses
 
+import cPickle as pickle
+
 from noobhack import ui, telnet, process, proxy
+from noobhack.game import player, dungeon
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]
@@ -62,23 +63,82 @@ class Noobhack:
     sure the screen gets updated as necessary.
     """
 
-    def __init__(self, toggle_help="\t", toggle_map="`"):
+    def __init__(self, toggle_help="\t", toggle_map="`", save_file=".noobhack.noob"):
         self.options = parse_options()
         self.toggle_help = toggle_help
         self.toggle_map = toggle_map
+        self.save_file = save_file
         self.mode = "game"
+        self.playing = False
 
         self.nethack = self.connect_to_game() 
         self.output_proxy = proxy.Output(self.nethack)
         self.input_proxy = proxy.Input(self.nethack) 
 
+        self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
+
+        self.output_proxy.register(self._restore_game_checker)
+        self.output_proxy.register(self._game_started_checker)
+        self.output_proxy.register(self._quit_or_died_checker)
+
         self.game = ui.Game(self.output_proxy)
-        self.helper = ui.Helper(self.output_proxy)
-        self.dungeon = ui.Map(self.output_proxy)
+        self.helper = ui.Helper(self.output_proxy, self.player, self.dungeon)
+        self.map = ui.Map(self.output_proxy, self.player, self.dungeon)
 
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.
         self.input_proxy.register(self._toggle)
+
+    def _quit_or_died_checker(self, data):
+        """
+        Check to see if the player quit or died. In either case, we need to
+        delete our, now pointless, save file.
+        """
+
+        match = re.search("Do you want your possessions identified\\?", data)
+        if match is not None:
+            self.delete()
+            self.playing = False
+            self.output_proxy.unregister(self._quit_or_died_checker)
+
+    def _game_started_checker(self, data):
+        """
+        Check to see if the game is playing or not.
+        """
+        match = re.search("welcome( back)? to NetHack!", data)
+        if match is not None:
+            self.playing = True
+            self.output_proxy.unregister(self._game_started_checker)
+
+    def _restore_game_checker(self, data):
+        match = re.search("Restoring save file...", data)
+        if match is not None:
+            # If nethack is reloading its game data, then we should reload 
+            # ours.
+            self.player, self.dungeon = self.load()
+            self.output_proxy.unregister(self._restore_game_checker)
+
+    def load(self):
+        if os.path.exists(self.save_file):
+            return pickle.load(open(self.save_file, "r"))
+        else:
+            raise RuntimeError(
+                "NetHack is trying to restore a game file, but noobhack " + 
+                "doesn't have any memory of this game. While noobhack will " +
+                "still work on a game it doesn't know anything about, there " +
+                "will probably be errors."
+            )
+
+    def save(self):
+        save_file = open(self.save_file, "w")
+        try:
+            pickle.dump((self.player, self.dungeon), save_file)
+        finally:
+            save_file.close()
+
+    def delete(self):
+        if os.path.exists(self.save_file):
+            os.remove(self.save_file)
 
     def connect_to_game(self):
         """
@@ -124,7 +184,7 @@ class Noobhack:
         """
 
         if self.mode == "map":
-            self.dungeon.display(window, self.toggle_map)
+            self.map.display(window, self.toggle_map)
             # Map mode handles it's own input. Make sure that we don't get
             # forever stuck in map mode by toggling back out of it when it's
             # done.
@@ -133,6 +193,9 @@ class Noobhack:
         self.game.redraw(window)
         if self.mode == "help":
             self.helper.redraw(window)
+
+        if self.playing:
+            self.save()
 
         # Let's wait until we have something to do...
         available = select.select(
