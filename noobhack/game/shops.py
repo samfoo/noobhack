@@ -7,7 +7,7 @@ types = {
     "liquor emporium":                 "potions",
     "antique weapons outlet" :         "90/10 weap/armor",
     "delicatessen":                    "83/14/3 food/drink/icebox",
-    "jewlers":                         "85/10/5 ring/gems/amu",
+    "jewelers":                        "85/10/5 ring/gems/amu",
     "quality apparel and accessories": "90/10 wand/misc",
     "hardware store":                  "tools",
     "rare books":                      "90/10 books/scrolls",
