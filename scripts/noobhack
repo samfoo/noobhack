@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 noobhack helps you ascend at nethack. You can press tab at anytime during the
-game to display the helper screen. Press tab again to dismiss it.
+game to display the helper overlay. Press tab again to dismiss it.
 """
 
 import sys
@@ -9,10 +9,7 @@ import getopt
 import select
 import curses
 
-import ui 
-import telnet
-import process
-import proxy
+from noobhack import ui, telnet, process, proxy
 
 def usage():
     sys.stderr.write("""Usage: noobhack.py [options]

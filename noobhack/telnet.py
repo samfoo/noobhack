@@ -1,12 +1,17 @@
 import os
-import sys
 import telnetlib
-import threading
 
 class Telnet:
+    """
+    Runs and manages the input/output of a remote nethack game. The class 
+    implements a telnet client in as much as the python telnetlib makes that
+    possible (grumble, grumble, grumble).
+    """
+
     def __init__(self, host="nethack.alt.org", port=23):
         self.host = host
         self.port = port
+        self.conn = None
 
     def write(self, buf):
         self.conn.get_socket().send(buf)
@@ -46,6 +51,10 @@ class Telnet:
             socket.send("%s%s\x27" % (telnetlib.IAC, telnetlib.WONT))
         elif self.conn.rawq == "\xff\xfa\x18\x01\xff\xf0":
             # We're being asked for the terminal type that we promised earlier
+            #
+            # TODO: I think this should probably be "vt102" now that we use an
+            # in-memory terminal emulator, but I can't check until I have a
+            # network connection.
             socket.send("%s%s\x18\x00%s%s%s" % 
                         (telnetlib.IAC,
                          telnetlib.SB,

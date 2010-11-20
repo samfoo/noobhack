@@ -1,6 +1,4 @@
-import status
-
-import events
+from noobhack.game import events
 
 class Player:
     """

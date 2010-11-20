@@ -7,12 +7,10 @@ import re
 
 import vt102
 
-import ui 
-import game.status
-import game.sounds
-import game.dungeon
+import noobhack
 
-from game.events import dispatcher
+from noobhack.game import shops, status, sounds, dungeon
+from noobhack.game.events import dispatcher
 
 class Brain:
     """
@@ -24,7 +22,7 @@ class Brain:
         # processor with the output proxy.
         self.stream = vt102.stream()
 
-        self.term = vt102.screen(ui.size())
+        self.term = vt102.screen(noobhack.ui.size())
         self.term.attach(self.stream)
         output_proxy.register(self.stream.process)
         output_proxy.register(self.process)
@@ -34,7 +32,7 @@ class Brain:
         self.prev_cursor = (0, 0)
 
     def _dispatch_level_feature_events(self, data):
-        for feature, messages in game.sounds.messages.iteritems():
+        for feature, messages in sounds.messages.iteritems():
             for message in messages:
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
@@ -47,7 +45,7 @@ class Brain:
         with the name of the status and it's value (either True or False).
         """
 
-        for name, messages in game.status.messages.iteritems():
+        for name, messages in status.messages.iteritems():
             for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
@@ -63,7 +61,7 @@ class Brain:
         return line
 
     def _dispatch_branch_change_event(self):
-        if 2 < self.dlvl <= 5 and game.dungeon.looks_like_mines(self.term.display):
+        if 2 < self.dlvl <= 5 and dungeon.looks_like_mines(self.term.display):
             dispatcher.dispatch("branch-change", "mines")
 
     def _dispatch_level_teleport_event(self, data):
@@ -94,10 +92,10 @@ class Brain:
                 dispatcher.dispatch("turn", self.turn)
 
     def _dispatch_shop_entered_event(self, data):
-        match = re.search(game.shops.entrance, data, re.I | re.M)
+        match = re.search(shops.entrance, data, re.I | re.M)
         if match is not None:
             shop_type = match.groups()[1]
-            for t, info in game.shops.types.iteritems():
+            for t, info in shops.types.iteritems():
                 match = re.search(t, shop_type, re.I)
                 if match is not None:
                     dispatcher.dispatch("shop-type", t)

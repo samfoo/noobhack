@@ -5,9 +5,9 @@ levels are where, what features the levels have, where it's entrances and exits
 are, etc.
 """
 
-import game.shops 
+from noobhack.game import shops 
 
-from game.events import dispatcher
+from noobhack.game.events import dispatcher
 
 messages = {
     "trap-door": set(("A trap door opens up under you!",))
@@ -32,7 +32,9 @@ def looks_like_mines(display):
     """
 
     def indices(row):
-        # Find the indices of all double dashes in the string.
+        """
+        Find the indices of all double dashes in the string.
+        """
         found = []
         i = 0
         try:
@@ -46,6 +48,10 @@ def looks_like_mines(display):
         return found
 
     def mines(first, second):
+        """
+        Look at adjacent rows and see if the have the right pattern shapes to
+        be what might be the mines.
+        """
         for index in first:
             for other_index in second:
                 if index == other_index + 1 or \
@@ -395,7 +401,7 @@ class Dungeon:
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
             self.current_level().features.add("shop")
-        self.current_level().shops.add(game.shops.types[shop_type]) 
+        self.current_level().shops.add(shops.types[shop_type]) 
 
     def _branch_change_handler(self, _, branch):
         self.graph.branch(branch)

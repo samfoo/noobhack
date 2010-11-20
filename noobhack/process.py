@@ -1,12 +1,22 @@
 import os
 import sys
 import fcntl
-import struct
 import select
 import signal
 import termios
 
 class Local:
+    """
+    Runs and manages the input/output of a local nethack game. The game is
+    forked into a pty.
+    """
+
+    def __init__(self):
+        self.pipe = None
+        self.stdin = None
+        self.stdout = None
+        self.pid = None
+
     def open(self):
         (self.pid, self.pipe) = os.forkpty()
 
