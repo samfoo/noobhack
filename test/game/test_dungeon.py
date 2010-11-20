@@ -114,7 +114,7 @@ class MapTest(unittest.TestCase):
         m.move(1, 2, (1, 1), (2, 2))
         m.current.branch = "mines"
         m.move(2, 1, (2, 2), (1, 1))
-        self.assertEqual("dungeon", m.current.branch)
+        self.assertEqual("main", m.current.branch)
         m.move(1, 2, (5, 5), (6, 6))
         where_i_should_end_up = m.current
         m.teleport(2, 3)

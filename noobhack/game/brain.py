@@ -61,6 +61,55 @@ class Brain:
                 break
         return line
 
+    def _dispatch_branch_change_event(self):
+        if 2 < self.dlvl <= 5:
+            # Gnomish Mines:
+            #
+            # Since we don't get a message about being in the mines, we have to
+            # guess whether we're in the mines or not. There are some features
+            # unique to the mines that we can use to make a pretty educated
+            # guess that we're there. First, the walls are irregular in the 
+            # mines.
+            #
+            # e.g.
+            #
+            #     --   or  --  
+            #    --         --
+            # 
+            # Would indicate that we're in the mines.
+
+            def indices(row):
+                # Find the indices of all double dashes in the string.
+                found = []
+                i = 0
+                try:
+                    while True: 
+                        occurance = row.index("--", i)
+                        found.append(occurance)
+                        i = occurance + 1
+                except ValueError:
+                    pass
+
+                return found
+
+            def looks_like_mines(first, second):
+                for index in first:
+                    for other_index in second:
+                        if index == other_index + 1 or \
+                           other_index == index + 1 or \
+                           index == other_index + 2 or \
+                           other_index == index + 2:
+                            return True
+                return False
+
+            scanned = [indices(row) for row in self.term.display]
+            for i in xrange(len(scanned)):
+                if i + 1 == len(scanned):
+                    break
+                above, below = scanned[i], scanned[i+1]
+                if looks_like_mines(above, below):
+                    dispatcher.dispatch("branch-change", "mines")
+
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
         match = re.search("Dlvl:(\\d+)", line)
@@ -101,6 +150,7 @@ class Brain:
         self._dispatch_turn_change_event()
         self._dispatch_level_change_event()
         self._dispatch_level_feature_events(data)
+        self._dispatch_branch_change_event()
         self._dispatch_shop_entered_event(data)
 
         self.prev_cursor = self.term.cursor()

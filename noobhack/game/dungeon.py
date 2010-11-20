@@ -55,6 +55,9 @@ class Map:
             # We've never seen this place before for sure.
             return None
 
+    def branch(self, branch):
+        self.current.branch = branch
+
     def teleport(self, from_dlvl, to_dlvl):
         """
         Transition from one dungeon level to another by teleport.
@@ -68,7 +71,7 @@ class Map:
             # current branch *or* the main dungeon branch. We've 
             # eliminated the possibility that we're in our current 
             # branch, but maybe we're in the main branch.
-            guess = [l for l in self.levels[to_dlvl] if l.branch == "dungeon"]
+            guess = [l for l in self.levels[to_dlvl] if l.branch == "main"]
 
         if guess is not None:
             self.current = guess
@@ -132,7 +135,7 @@ class Map:
                 # and we arrive at some dlvl that we've been to and we've been
                 # to the same branch or the main branch at that dlvl: then 
                 # we've been here before.
-                possibles = [l for l in self.levels.get(above, []) if l.branch == self.current.branch or l.branch == "dungeon"]
+                possibles = [l for l in self.levels.get(above, []) if l.branch == self.current.branch or l.branch == "main"]
                 if len(possibles) == 0:
                     self._add(to_dlvl, new)
                 else: 
@@ -173,12 +176,17 @@ class Map:
         self.links[(above, below)] = current
 
 class Level:
-    def __init__(self, dlvl, branch="dungeon"):
+    def __init__(self, dlvl, branch="main"):
         self.features = set()
         self.ups = set()
         self.downs = set()
         self.dlvl = dlvl
         self.branch = branch 
+
+    def __str__(self):
+        return "Dlvl(%s):%d(%s)" % (self.branch, \
+                                    self.dlvl, \
+                                    ",".join([f[0] for f in self.features]))
 
     def __repr__(self):
         return "<level(%s): %s>" % (self.branch, repr({
@@ -211,6 +219,8 @@ class Dungeon:
 
         dispatcher.add_event_listener("level-change", 
                                       self._level_change_handler)
+        dispatcher.add_event_listener("branch-change",
+                                      self._branch_change_handler)
         dispatcher.add_event_listener("level-feature",
                                       self._level_feature_handler)
         dispatcher.add_event_listener("shop-type",
@@ -222,6 +232,9 @@ class Dungeon:
             self.current_level().features.remove("shop")
         self.current_level().features.add("shop (%s)" % \
                                           game.shops.types[shop_type]) 
+
+    def _branch_change_handler(self, _, branch):
+        self.graph.branch(branch)
 
     def _level_feature_handler(self, _, feature):
         self.current_level().features.add(feature)
