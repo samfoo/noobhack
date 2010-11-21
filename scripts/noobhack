@@ -63,13 +63,18 @@ class Noobhack:
     sure the screen gets updated as necessary.
     """
 
-    def __init__(self, toggle_help="\t", toggle_map="`", save_file=".noobhack.noob"):
+    noobhack_dir = os.path.expanduser("~/.noobhack")
+    save_file = os.path.join(noobhack_dir, "save")
+
+    def __init__(self, toggle_help="\t", toggle_map="`"):
         self.options = parse_options()
         self.toggle_help = toggle_help
         self.toggle_map = toggle_map
-        self.save_file = save_file
         self.mode = "game"
         self.playing = False
+
+        if not os.path.exists(self.noobhack_dir):
+            os.makedirs(self.noobhack_dir, 0755)
 
         self.nethack = self.connect_to_game() 
         self.output_proxy = proxy.Output(self.nethack)
