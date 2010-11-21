@@ -37,9 +37,6 @@ class Dispatcher:
         """
 
         for listener in self.listeners.get(event, []):
-            if event == "status" and len(args) > 2:
-                import pdb
-                pdb.set_trace()
             listener(event, *args)
 
 dispatcher = Dispatcher()

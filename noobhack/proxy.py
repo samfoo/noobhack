@@ -14,7 +14,7 @@ class Input:
 
     def __init__(self, game):
         self.game = game
-        self.callbacks = set()
+        self.callbacks = [] 
 
     def register(self, callback):
         """
@@ -22,13 +22,15 @@ class Input:
         stdin is forwarded to the game. The callback should return `False` if 
         it's not to forward the input to the game.
         """
-        self.callbacks.add(callback)
+        if callback not in self.callbacks:
+            self.callbacks.append(callback)
 
     def unregister(self, callback):
         """
         Unregister a callback.
         """
-        self.callbacks.remove(callback)
+        if callback in self.callbacks:
+            self.callbacks.remove(callback)
 
     def proxy(self):
         """
@@ -42,7 +44,7 @@ class Input:
         # Make the callback set a list because callbacks should be able to 
         # unregister themselves if they want and they can't do that while 
         # iterating over the set, so we need a copy.
-        for callback in list(self.callbacks):
+        for callback in self.callbacks[:]:
             if callback(key) is False:
                 return
 
@@ -57,7 +59,7 @@ class Output:
 
     def __init__(self, game):
         self.game = game
-        self.callbacks = set() 
+        self.callbacks = [] 
 
     def register(self, callback):
         """
@@ -65,13 +67,15 @@ class Output:
         function should accept one argument, which will be the data read from 
         the game.
         """
-        self.callbacks.add(callback)
+        if callback not in self.callbacks:
+            self.callbacks.append(callback)
 
     def unregister(self, callback):
         """
         Unregister a callback.
         """
-        self.callbacks.remove(callback)
+        if callback in self.callbacks:
+            self.callbacks.remove(callback)
 
     def proxy(self):
         """
@@ -84,6 +88,6 @@ class Output:
 
         # Make the callback set a list because callbacks should be able to 
         # unregister themselves if they want and they can't do that while 
-        # iterating over the set, so we need a copy.
-        for callback in list(self.callbacks):
+        # iterating over the list, so we need a copy.
+        for callback in self.callbacks[:]:
             callback(output)

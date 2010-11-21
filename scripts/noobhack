@@ -72,6 +72,7 @@ class Noobhack:
         self.toggle_map = toggle_map
         self.mode = "game"
         self.playing = False
+        self.reloading = False
 
         if not os.path.exists(self.noobhack_dir):
             os.makedirs(self.noobhack_dir, 0755)
@@ -80,18 +81,11 @@ class Noobhack:
         self.output_proxy = proxy.Output(self.nethack)
         self.input_proxy = proxy.Input(self.nethack) 
 
-        self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
-        self.player.listen()
-        self.dungeon.listen()
+        self.game = ui.Game(self.output_proxy)
 
         self.output_proxy.register(self._restore_game_checker)
         self.output_proxy.register(self._game_started_checker)
         self.output_proxy.register(self._quit_or_died_checker)
-
-        self.brain = brain.Brain(self.output_proxy)
-        self.game = ui.Game(self.output_proxy)
-        self.helper = ui.Helper(self.brain, self.player, self.dungeon)
-        self.map = ui.Map(self.brain, self.player, self.dungeon)
 
         # Register the `toggle` key to open up the interactive nooback 
         # assistant.
@@ -109,6 +103,19 @@ class Noobhack:
             self.playing = False
             self.output_proxy.unregister(self._quit_or_died_checker)
 
+    def _start(self):
+        if self.reloading:
+            self.player, self.dungeon = self.load()
+        else:
+            self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
+
+        self.player.listen()
+        self.dungeon.listen()
+
+        self.brain = brain.Brain(self.output_proxy)
+        self.helper = ui.Helper(self.brain, self.player, self.dungeon)
+        self.map = ui.Map(self.brain, self.player, self.dungeon)
+
     def _game_started_checker(self, data):
         """
         Check to see if the game is playing or not.
@@ -116,19 +123,13 @@ class Noobhack:
         match = re.search("welcome( back)? to NetHack!", data)
         if match is not None:
             self.playing = True
+            self._start()
             self.output_proxy.unregister(self._game_started_checker)
 
     def _restore_game_checker(self, data):
         match = re.search("Restoring save file...", data)
         if match is not None:
-            # If nethack is reloading its game data, then we should reload 
-            # ours.
-            self.player, self.dungeon = self.load()
-            self.player.listen()
-            self.dungeon.listen()
-            self.helper = ui.Helper(self.brain, self.player, self.dungeon)
-            self.map = ui.Map(self.brain, self.player, self.dungeon)
-            self.output_proxy.unregister(self._restore_game_checker)
+            self.reloading = True
 
     def load(self):
         if os.path.exists(self.save_file):
