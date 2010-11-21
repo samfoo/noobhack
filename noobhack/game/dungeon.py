@@ -28,7 +28,13 @@ def looks_like_mines(display):
          --   or  --   or  --    or  --
         --         --        --        --
     
-    Would indicate that we're in the mines.
+    Would indicate that we're in the mines. The other thing that could indicate
+    that it's the mines is passageways that are only one square wide.
+
+    e.g.
+             or   -
+        |.|       .
+                  -
     """
 
     def indices(row):
@@ -67,6 +73,14 @@ def looks_like_mines(display):
             break
         above, below = scanned[i], scanned[i+1]
         if mines(above, below):
+            return True
+
+    for row in display:
+        if row.find("|.|") > -1:
+            return True
+
+    for column in ["".join(c) for c in zip(*display)]:
+        if column.find("-.-") > -1:
             return True
 
     return False
