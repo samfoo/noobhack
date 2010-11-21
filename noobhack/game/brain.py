@@ -9,7 +9,7 @@ import vt102
 
 import noobhack
 
-from noobhack.game import shops, status, sounds, dungeon
+from noobhack.game import shops, status, resistances, sounds, dungeon
 from noobhack.game.events import dispatcher
 
 class Brain:
@@ -36,6 +36,13 @@ class Brain:
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
                     dispatcher.dispatch("level-feature", feature)
+
+    def _dispatch_resistance_events(self, data):
+        for name, messages in resistances.messages.iteritems():
+            for message in messages:
+                match = re.search(message, data, re.I | re.M)
+                if match is not None:
+                    dispatcher.dispatch("resistance", name)
 
     def _dispatch_status_events(self, data):
         """
@@ -87,6 +94,12 @@ class Brain:
                 self.dlvl = dlvl
                 dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
 
+    def _dispatch_trap_door_event(self, data):
+        for message in dungeon.messages["trap-door"]:
+            match = re.search(message, data)
+            if match is not None:
+                dispatcher.dispatch("trap-door")
+
     def _dispatch_turn_change_event(self):
         """
         Dispatch an even each time a turn advances.
@@ -115,7 +128,9 @@ class Brain:
         """
 
         self._dispatch_status_events(data)
+        self._dispatch_resistance_events(data)
         self._dispatch_turn_change_event()
+        self._dispatch_trap_door_event(data)
         self._dispatch_level_change_event()
         self._dispatch_level_feature_events(data)
         self._dispatch_branch_change_event()

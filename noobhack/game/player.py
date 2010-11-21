@@ -13,6 +13,7 @@ class Player:
 
     def listen(self):
         events.dispatcher.add_event_listener("status", self._status_handler)
+        events.dispatcher.add_event_listener("status", self._resistance_handler)
 
     def _resistance_handler(self, event, name):
         self.resistances.add(name)

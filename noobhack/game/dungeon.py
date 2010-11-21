@@ -412,6 +412,8 @@ class Dungeon:
                                       self._shop_type_handler)
         dispatcher.add_event_listener("level-teleport",
                                       self._level_teleport_handler)
+        dispatcher.add_event_listener("trap-door", 
+                                      self._trap_door_handler)
 
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
@@ -424,6 +426,9 @@ class Dungeon:
     def _level_feature_handler(self, _, feature):
         self.current_level().features.add(feature)
 
+    def _trap_door_handler(self, _):
+        self.fell_through_trap = True
+
     def _level_teleport_handler(self, _):
         self.went_through_lvl_tel = True
 
@@ -434,7 +439,9 @@ class Dungeon:
             # change event when, in fact, we clearly have not changed levels.
             return
 
-        if self.went_through_lvl_tel or self.fell_through_trap:
+        if abs(self.level - level) > 1 or \
+           self.went_through_lvl_tel or \
+           self.fell_through_trap:
             self.graph.teleport(self.level, level)
             self.went_through_lvl_tel = False
             self.fell_through_trap = False
