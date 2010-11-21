@@ -88,7 +88,7 @@ class Brain:
             if dlvl != self.dlvl:
                 if dlvl < self.dlvl:
                     self.last_move = "up"
-                else:
+                elif dlvl > self.dlvl:
                     self.last_move = "down"
 
                 self.dlvl = dlvl

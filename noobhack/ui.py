@@ -423,7 +423,7 @@ class Helper:
         dungeon_frame.overwrite(window)
         resist_frame.overwrite(window)
 
-        window.refresh()
+        window.noutrefresh()
 
 class Game:
     """
@@ -463,5 +463,5 @@ class Game:
         window.move(cur_y, cur_x)
 
         # Finally, redraw the whole thing.
-        window.refresh()
+        window.noutrefresh()
 

@@ -5,6 +5,8 @@ levels are where, what features the levels have, where it's entrances and exits
 are, etc.
 """
 
+import re
+
 from noobhack.game import shops 
 
 from noobhack.game.events import dispatcher
@@ -14,8 +16,38 @@ messages = {
 }
 
 def looks_like_sokoban(display):
-    pass
+    """
+    Sokoban is a lot easier than the mines. There's no teleporting and we know
+    exactly what the first level looks like (though there are two variations 
+    and it's all revealed at once.
 
+    Easy peasy.
+    """
+
+    # TODO: Lookup the other sokoban configurations when I have a net
+    # connection
+
+    first = [
+        "--\\^\\|   \\|.0...\\|",
+        "\\|\\^-----.0...\\|",
+        "\\|..\\^\\^\\^\\^0.0..\\|",
+        "\\|..----------",
+        "----",
+    ]
+
+    i = 0
+    for j in xrange(len(display)):
+        line = display[j].strip()
+        if re.match(first[i], line) is not None:
+            if i == len(first) - 1:
+                # Found the last one, that means we're home free.
+                return True
+            else:
+                # Found this one, but it's not the last one.
+                i += 1
+
+    return False
+            
 def looks_like_mines(display):
     """
     Gnomish Mines:
@@ -106,6 +138,7 @@ class Map:
         All of these together form a link. E.g. `{(1, 2): ((1, 2), (3, 4))}`
         would be a link from dlvl 1 to 2, where the top position is `(1, 2)` 
         and the bottom position is `(3, 4)`.
+
         2. Each level keeps track of it's own entrances and exits (ups and 
         downs)
 
@@ -280,20 +313,29 @@ class Map:
                 self.current = new
             else:
                 # ... but heading up might be trickier. We might be on a branch
-                # which teleported us down and have just arrived back at a
-                # level which we've never gone down to before... crap.
+                # which teleported us down and have just arrived at a level 
+                # which we've never gone down to before... crap.
 
-                # So how do we know if we're at a level that we've already been
-                # to? Strictly speaking, we *can't* know; at least not for 
-                # sure. However, we can guess that if we're coming up a branch,
-                # and we arrive at some dlvl that we've been to and we've been
-                # to the same branch or the main branch at that dlvl: then 
-                # we've been here before.
-                possibles = [l for l in self.levels.get(above, []) if l.branch == self.current.branch or l.branch == "main"]
-                if len(possibles) == 0:
+                if not self.is_orphan(self.current):
+                    # There's already a link from our current level to some
+                    # level above it. We're not using that link, so we must be
+                    # going up to a different (new) level. I think this case
+                    # only happens with sokoban.
                     self._add(to_dlvl, new)
-                else: 
-                    new = possibles[0]
+                else:
+                    # Try to find any parents above me that are childless that
+                    # I might be traveling to.
+                    possibles = [l for l in self.levels.get(above, []) if len(self.children(l)) == 0] 
+                    if len(possibles) == 0:
+                        # There are no levels above me that could possibly be a
+                        # parent, so this must be going from one orphan to 
+                        # another and we're fine creating a new level.
+                        self._add(to_dlvl, new)
+                    else: 
+                        # There was a level above me that could be my parent.
+                        # Hopefully only one, because we can't tell the
+                        # difference between them.
+                        new = possibles[0]
 
                 new.downs.add(above_pos)
                 self.current.ups.add(below_pos)

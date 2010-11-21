@@ -225,6 +225,8 @@ class Noobhack:
         if self.mode == "help":
             self.helper.redraw(window)
 
+        window.refresh()
+
         if self.playing:
             self.save()
 
