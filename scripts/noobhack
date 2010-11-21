@@ -155,7 +155,9 @@ class Noobhack:
                 "NetHack is trying to restore a game file, but noobhack " + 
                 "doesn't have any memory of this game. While noobhack will " +
                 "still work on a game it doesn't know anything about, there " +
-                "will probably be errors."
+                "will probably be errors. If you'd like to use noobhack, " +
+                "run nethack and quit your current game, then restart " + 
+                "noobhack."
             )
 
     def save(self):
