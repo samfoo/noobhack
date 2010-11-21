@@ -95,6 +95,31 @@ class MapTest(unittest.TestCase):
         self.assertEqual(0, len(m.links))
         self.assertNotEqual(first, m.current)
 
+    def test_teleport_down_to_level_that_we_already_know_about(self):
+        m = Map()
+        m.move(1, 2, (1, 1), (2, 2))
+        m.move(2, 1, (2, 2), (1, 1))
+        m.teleport(1, 2)
+        self.assertEqual(2, len(m.levels))
+        self.assertEqual(1, len(m.links))
+        self.assertEqual(1, len(m.levels[2]))
+
+    def test_teleport_down_to_level_that_already_exists_but_is_parallel_to_a_branch(self):
+        m = Map()
+        m.move(1, 2, (1, 1), (2, 2))
+        second = m.current
+        m.move(2, 1, (2, 2), (1, 1))
+        m.move(1, 2, (3, 3), (4, 4))
+        m.branch("mines")
+        m.move(2, 1, (4, 4), (3, 3))
+        m.teleport(1, 2)
+
+        self.assertEqual(2, len(m.levels))
+        self.assertEqual(1, len(m.links))
+        self.assertEqual(2, len(m.links[(1,2)]))
+        self.assertEqual(2, len(m.levels[2]))
+        self.assertEqual(second, m.current)
+
     def test_teleport_down_then_walk_back_up(self):
         m = Map()
         first = m.current
