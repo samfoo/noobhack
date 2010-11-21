@@ -13,6 +13,9 @@ messages = {
     "trap-door": set(("A trap door opens up under you!",))
 }
 
+def looks_like_sokoban(display):
+    pass
+
 def looks_like_mines(display):
     """
     Gnomish Mines:

@@ -17,22 +17,17 @@ class Brain:
     GrraaAAaaaAaaaa... braaaAAaaains...
     """
 
-    def __init__(self, output_proxy):
-        # Create an in-memory terminal screen and register it's stream
-        # processor with the output proxy.
-        self.stream = vt102.stream()
-
-        self.term = vt102.screen(noobhack.ui.size())
-        self.term.attach(self.stream)
-        output_proxy.register(self.stream.process)
+    def __init__(self, term, output_proxy):
+        self.term = term
         output_proxy.register(self.process)
 
+        self.last_move = None
         self.turn = 0
         self.dlvl = 0
         self.prev_cursor = (0, 0)
 
     def _dispatch_level_feature_events(self, data):
-        match = re.search("There is an altar to \\w+ \\((\\w+)\\) here.", data)
+        match = re.search("There is an altar to .* \\((\\w+)\\) here.", data)
         if match is not None:
             dispatcher.dispatch("level-feature", "altar (%s)" % match.groups()[0])
 
@@ -65,8 +60,18 @@ class Brain:
         return line
 
     def _dispatch_branch_change_event(self):
-        if 2 < self.dlvl <= 5 and dungeon.looks_like_mines(self.term.display):
+        if self.last_move == "down" and 3 <= self.dlvl <= 5 and \
+           dungeon.looks_like_mines(self.term.display): 
+            # The only entrace to the mines is between levels 3 and 5 and
+            # the player has to have been traveling down to get there. Also
+            # count it if the dlvl didn't change, because it *might* take
+            # a couple turns to identify the mines. Sokoban, by it's nature
+            # however is instantly identifiable. 
             dispatcher.dispatch("branch-change", "mines")
+        elif self.last_move == "up" and dungeon.looks_like_sokoban(self.term.display):
+            # If the player traveled up and arrived at a level that looks
+            # like sokoban, she's definitely in sokoban.
+            dispatcher.dispatch("branch-change", "sokoban")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
@@ -74,6 +79,11 @@ class Brain:
         if match is not None:
             dlvl = int(match.groups()[0])
             if dlvl != self.dlvl:
+                if dlvl < self.dlvl:
+                    self.last_move = "up"
+                else:
+                    self.last_move = "down"
+
                 self.dlvl = dlvl
                 dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
 

@@ -9,8 +9,6 @@ import curses
 import struct
 import termios
 
-import vt102 
-
 from game import player, dungeon, status
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
@@ -429,24 +427,11 @@ class Helper:
 
 class Game:
     """
-    Given an output proxy, a game maintains a terminal in-memory and writes it
-    out to a curses screen when `redraw` is called.
+    Draw the game in the terminal.
     """
 
-    def __init__(self, output_proxy):
-        # Create an in-memory terminal screen and register it's stream
-        # processor with the output proxy.
-        self.stream = vt102.stream()
-
-        # For some reason that I can't assertain: curses freaks out and crashes
-        # when you use exactly the number of rows that are available on the
-        # terminal. It seems easiest just to subtract one from the rows and 
-        # deal with it rather than hunt forever trying to figure out what I'm
-        # doing wrong with curses.
-        rows, cols = size()
-        self.term = vt102.screen((rows-1, cols))
-        self.term.attach(self.stream)
-        output_proxy.register(self.stream.process)
+    def __init__(self, term):
+        self.term = term
 
     def _redraw_row(self, window, row):
         """
