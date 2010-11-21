@@ -333,10 +333,9 @@ class Level:
     codemap = {
         "oracle": "o",
         "rogue": "r",
-        "altar": "a",
-        "altar (c)": "ac",
-        "altar (n)": "an",
-        "altar (l)": "al",
+        "altar (chaotic)": "ac",
+        "altar (neutral)": "an",
+        "altar (lawful)": "al",
         "angry watch": "w",
         "zoo": "z",
         "barracks": "b",

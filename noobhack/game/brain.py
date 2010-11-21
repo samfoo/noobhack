@@ -32,6 +32,10 @@ class Brain:
         self.prev_cursor = (0, 0)
 
     def _dispatch_level_feature_events(self, data):
+        match = re.search("There is an altar to \\w+ \\((\\w+)\\) here.", data)
+        if match is not None:
+            dispatcher.dispatch("level-feature", "altar (%s)" % match.groups()[0])
+
         for feature, messages in sounds.messages.iteritems():
             for message in messages:
                 match = re.search(message, data, re.I | re.M)

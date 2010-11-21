@@ -5,7 +5,7 @@ messages = {
         "You hear snoring snakes.",
         "You hear someone say \"No more woodchucks!\"",
         "You hear a loud ZOT!",
-        "Salutations, sam, welcome to Delphi!",
+        "welcome to Delphi!",
     )),
     "rogue": set(("You enter what seems to be an older, more primitive world.",)),
     "angry watch": set(("You hear the shrill sound of a guard's whistle.",)),
