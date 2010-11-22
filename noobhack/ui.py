@@ -10,7 +10,7 @@ import curses
 import struct
 import termios
 
-from game import player, dungeon, status
+from noobhack.game import status
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
@@ -176,9 +176,10 @@ class Map:
             "s": "Shop",
             "v": "Vault",
             "h": "Beehive",
+            "c": "Chest",
         }
 
-        legend = curses.newwin(14, 20, 1, 3)
+        legend = curses.newwin(15, 20, 1, 3)
         legend.border("|", "|", "-", "-", "+", "+", "+", "+")
         legend.addstr(0, 3, " Legend: ")
         legend.addstr(1, 2, "Press ` to exit", curses.A_BOLD)
@@ -316,7 +317,7 @@ class Helper:
             0
         )
 
-        dungeon_frame.clear()
+        dungeon_frame.erase()
         dungeon_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
 
@@ -365,7 +366,7 @@ class Helper:
             self.level_width + self.status_width - 2
         )
 
-        res_frame.clear()
+        res_frame.erase()
         res_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         res_frame.addstr(0, 2, " resist ", get_color(curses.COLOR_CYAN))
         resistances = sorted(self.player.resistances)
@@ -393,7 +394,7 @@ class Helper:
             self.level_width - 1
         )
 
-        status_frame.clear()
+        status_frame.erase()
         status_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
         status_frame.addstr(0, 2, " status ", get_color(curses.COLOR_CYAN))
         statuses = self._get_statuses()
@@ -455,7 +456,7 @@ class Game:
         Repaint the screen with the new contents of our terminal emulator...
         """
 
-        window.clear()
+        window.erase()
         for row_index in xrange(len(self.term.display)):
             self._redraw_row(window, row_index)
 

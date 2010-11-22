@@ -105,7 +105,7 @@ def looks_like_mines(display):
                     return True
         return False
 
-    scanned = [indices(row) for row in display]
+    scanned = [indices(row.strip()) for row in display]
     for i in xrange(len(scanned)):
         if i + 1 == len(scanned):
             break
@@ -114,10 +114,10 @@ def looks_like_mines(display):
             return True
 
     for row in display:
-        if row.find("|.|") > -1:
+        if row.strip().find("|.|") > -1:
             return True
 
-    for column in ["".join(c) for c in zip(*display)]:
+    for column in ["".join(c.strip()) for c in zip(*display)]:
         if column.find("-.-") > -1:
             return True
 
@@ -404,6 +404,7 @@ class Level:
         "shop": "s",
         "vault": "v",
         "beehive": "h",
+        "chest": "c",
     }
 
     def __init__(self, dlvl, branch="main"):
