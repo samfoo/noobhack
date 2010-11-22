@@ -12,7 +12,10 @@ from noobhack.game import shops
 from noobhack.game.events import dispatcher
 
 messages = {
-    "trap-door": set(("A trap door opens up under you!",))
+    "trap-door": set((
+        "A trap door opens up under you!",
+        "Air currents pull you down into a hole!",
+    ))
 }
 
 def looks_like_sokoban(display):
