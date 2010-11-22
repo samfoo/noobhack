@@ -1,6 +1,7 @@
 """
 The UI components of noobhack. `Game` draws and manages the actual nethack 
-game, while `Helper` draws the help/cheat overlay.
+game, while `Helper` draws the help/cheat overlay, and `Map` draws the map 
+screen.
 """
 
 import sys
@@ -240,7 +241,7 @@ class Map:
                 scroll_y = max(scroll_y - 1, 4) 
             elif key == "j":
                 scroll_y = min(scroll_y + 1, approx_height - size()[0])
-            elif key == close:
+            elif key == close or key == "\x1b":
                 break
 
 class Helper:
