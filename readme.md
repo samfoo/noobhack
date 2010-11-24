@@ -74,34 +74,34 @@ during gameplay):
 
 And the map:
 
-   +-- Legend: -------+                                           *
-   | Press ` to exit  |                                     +- main:1 -+
-   | j, k to scroll   |                                     |     ?    |
-   |                  |                                     +----------+
-   | a[cnl]     Altar |                                           |
-   | b       Barracks |                                     +- main:2 -+
-   | h        Beehive |                                     |     ?    |
-   | o         Oracle |                                     +----------+
-   | r          Rogue |                                           |
-   | s           Shop |                                     +- main:3 -+
-   | v          Vault |                                     |     v    |
-   | w    Angry watch |                                     +----------+
-   | z            Zoo |                                           |
-   +------------------+                                     +- main:4 -+
-                                                            |    al    |
-                                                      .-----+----------+
-                                                     /            |
-                                        +- mines:5 -+       +- main:5 -+
-                                        |     ?     |       |     ?    |
-                                        +-----------+       +----------+
-                                              |
-                                        +- mines:6 -+
-                                        |     ?     |
-                                        +-----------+
-                                              |
-                                        +- mines:7 -+
-                                        |   ac,s    |
-                                        +-----------+
+    +-- Legend: -------+                                           *
+    | Press ` to exit  |                                     +- main:1 -+
+    | j, k to scroll   |                                     |     ?    |
+    |                  |                                     +----------+
+    | a[cnl]     Altar |                                           |
+    | b       Barracks |                                     +- main:2 -+
+    | h        Beehive |                                     |     ?    |
+    | o         Oracle |                                     +----------+
+    | r          Rogue |                                           |
+    | s           Shop |                                     +- main:3 -+
+    | v          Vault |                                     |     v    |
+    | w    Angry watch |                                     +----------+
+    | z            Zoo |                                           |
+    +------------------+                                     +- main:4 -+
+                                                             |    al    |
+                                                       .-----+----------+
+                                                      /            |
+                                         +- mines:5 -+       +- main:5 -+
+                                         |     ?     |       |     ?    |
+                                         +-----------+       +----------+
+                                               |
+                                         +- mines:6 -+
+                                         |     ?     |
+                                         +-----------+
+                                               |
+                                         +- mines:7 -+
+                                         |   ac,s    |
+                                         +-----------+
 
 
 does noobhack work on public servers like nethack.alt.org?
