@@ -27,7 +27,7 @@ class Brain:
         if match is not None:
             dispatcher.dispatch("level-feature", "altar (%s)" % match.groups()[0])
 
-        match = re.search("You see here a large box.", data)
+        match = re.search("You see here a (large box)|(chest).", data)
         if match is not None:
             dispatcher.dispatch("level-feature", "chest")
 

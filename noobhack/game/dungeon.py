@@ -117,7 +117,7 @@ def looks_like_mines(display):
         if row.strip().find("|.|") > -1:
             return True
 
-    for column in ["".join(c.strip()) for c in zip(*display)]:
+    for column in ["".join(c).strip() for c in zip(*display)]:
         if column.find("-.-") > -1:
             return True
 
