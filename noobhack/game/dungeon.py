@@ -27,9 +27,6 @@ def looks_like_sokoban(display):
     Easy peasy.
     """
 
-    # TODO: Lookup the other sokoban configurations when I have a net
-    # connection
-
     first = [
         "--\\^\\|   \\|.0...\\|",
         "\\|\\^-----.0...\\|",
