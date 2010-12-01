@@ -1,4 +1,5 @@
 entrance = "Welcome( again)? to \\w+'s (.*)!"
+price = "[^(only)] (a|\\d+) (.*) \\(unpaid, (\\d+) zorkmids\\)\\."
 
 types = {
     "general":                         "random",

@@ -38,18 +38,32 @@ def looks_like_sokoban(display):
         "----",
     ]
 
-    i = 0
-    for j in xrange(len(display)):
-        line = display[j].strip()
-        if re.match(first[i], line) is not None:
-            if i == len(first) - 1:
-                # Found the last one, that means we're home free.
-                return True
-            else:
-                # Found this one, but it's not the last one.
-                i += 1
+    second = [
+        "\\|\\^\\|    \\|......\\|"
+        "\\|\\^------......\\|"
+        "\\|..\\^\\^\\^\\^0000...\\|"
+        "\\|\\?\\?-----......\\|"
+        "----   --------"
+    ]
 
-    return False
+    def identify(pattern):
+        i = 0
+        for j in xrange(len(display)):
+            line = display[j].strip()
+            if re.match(pattern[i], line) is not None:
+                if i == len(pattern) - 1:
+                    # Found the last one, that means we're home free.
+                    return True
+                else:
+                    # Found this one, but it's not the last one.
+                    i += 1
+        return False
+
+    sokoban = identify(first)
+    if not sokoban:
+        sokoban = identify(second)
+
+    return sokoban
             
 def looks_like_mines(display):
     """
@@ -328,7 +342,7 @@ class Map:
                 else:
                     # Try to find any parents above me that are childless that
                     # I might be traveling to.
-                    possibles = [l for l in self.levels.get(above, []) if len(self.children(l)) == 0] 
+                    possibles = [l for l in self.levels.get(above, []) if len(self.children(l)) == 0 and l.branch == self.current.branch] 
                     if len(possibles) == 0:
                         # There are no levels above me that could possibly be a
                         # parent, so this must be going from one orphan to 
