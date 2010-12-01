@@ -4,13 +4,14 @@ game, while `Helper` draws the help/cheat overlay, and `Map` draws the map
 screen.
 """
 
+import re
 import sys
 import fcntl
 import curses 
 import struct
 import termios
 
-from noobhack.game import status
+from noobhack.game import status, shops
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
@@ -380,6 +381,49 @@ class Helper:
 
         return res_frame
 
+    def _identify_box(self, items):
+        """
+        Create the pain with information about price identifying something.
+        """
+
+        items = sorted(items, lambda a, b: cmp(b[2], a[2]))
+        items = [("%s" % i[0], "%0.2f%%" % (float(i[2]) / 10.)) for i in items]
+        if len(items) == 0:
+            items = set([("(huh... can't identify)", "100%")])
+
+        width = 2 + max([len(i[0]) + len(i[1]) + 4 for i in items])
+
+        identify_frame = curses.newwin(len(items) + 1, width, 1, 0)
+        identify_frame.border("|", "|", " ", "-", "|", "|", "+", "+")
+        identify_frame.addstr(len(items), 2, " identify ", get_color(curses.COLOR_CYAN))
+
+        for row, item in enumerate(items):
+            identify_frame.addstr(row, 2, item[0])
+            identify_frame.addstr(row, width - len(item[1]) - 2, item[1])
+
+        return identify_frame
+
+    def _things_to_buy_identify(self):
+        # TODO: Make sure that unpaid prices can only ever appear on the first
+        # line. I might have to check the second line too.
+        line = self.brain.term.display[0]
+        match = re.search(shops.price, line, re.I)
+        if match is not None:
+            count = match.groups()[0]
+            item = match.groups()[1]
+            price = int(match.groups()[2])
+
+            if count == "a":
+                count = 1
+            else:
+                count = int(count)
+
+            price = price / count
+
+            return (item, price)
+
+        return None
+
     def _status_box(self):
         """
         Create the pane with information about the player's current state.
@@ -416,6 +460,13 @@ class Helper:
         """
         Repaint the screen with the helper UI.
         """
+
+        if self._things_to_buy_identify() is not None:
+            item, price = self._things_to_buy_identify()
+            items = shops.buy_identify(self.brain.charisma(), item, price, self.brain.sucker())
+
+            identify_frame = self._identify_box(items)
+            identify_frame.overwrite(window)
 
         status_frame = self._status_box()
         dungeon_frame = self._level_box()
