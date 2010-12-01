@@ -412,10 +412,26 @@ class Helper:
 
         return status_frame
 
-    def redraw(self, window):
+    def _breadcrumbs(self, window):
+        breadcrumbs = self.dungeon.current_level().breadcrumbs
+
+        for crumb in breadcrumbs:
+            x, y = crumb
+            if self.brain.char_at(x, y) not in [".", "#"]: 
+                # Ignore anything that's not something we can step on.
+                continue
+            window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
+
+        cur_x, cur_y = self.brain.term.cursor()
+        window.move(cur_y, cur_x)
+
+    def redraw(self, window, breadcrumbs=False):
         """
         Repaint the screen with the helper UI.
         """
+
+        if self.brain.cursor_is_on_player() and breadcrumbs:
+            self._breadcrumbs(window)
 
         status_frame = self._status_box()
         dungeon_frame = self._level_box()

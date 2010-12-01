@@ -139,6 +139,19 @@ class Brain:
                 if match is not None:
                     dispatcher.dispatch("shop-type", t)
 
+    def _dispatch_move_event(self):
+        if self.term.cursor() != self.prev_cursor and self.cursor_is_on_player():
+            dispatcher.dispatch("move", self.term.cursor())
+
+    def cursor_is_on_player(self):
+        return self.char_at(*self.term.cursor()) == "@"
+
+    def char_at(self, x, y):
+        row = self.term.display[y]
+        col = row[x]
+
+        return col
+
     def process(self, data):
         """
         Callback attached to the output proxy.
@@ -153,5 +166,6 @@ class Brain:
         self._dispatch_level_feature_events(data)
         self._dispatch_branch_change_event()
         self._dispatch_shop_entered_event(data)
+        self._dispatch_move_event()
 
         self.prev_cursor = self.term.cursor()

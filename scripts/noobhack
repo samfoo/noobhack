@@ -20,9 +20,11 @@ Help: noobhack helps you ascend in nethack.
     By default, it runs a copy of nethack locally, however it's possible to
     connect to a remote telnet server and proxy a game.
 Options:
-    -l      Play a local game (default)
-    -h      Host to play a remote game on
-    -p      Port to connect to the remote host (default: 23)""")
+    -l          Play a local game (default)
+    -h          Host to play a remote game on
+    -p          Port to connect to the remote host (default: 23)
+
+    --crumbs    Display breadcrumbs with the helper overlay.""")
     sys.stderr.flush()
     sys.exit(1)
 
@@ -34,7 +36,7 @@ def parse_options():
     opts_dict = {"local": True}
 
     options, remaining = \
-        getopt.getopt(sys.argv[1:], "lh:p:", [])
+        getopt.getopt(sys.argv[1:], "lh:p:", ["crumbs"])
 
     if len(remaining) > 0:
         sys.stderr.write("noobhack: unrecognized argument(s) `%s'\n" % \
@@ -50,12 +52,17 @@ def parse_options():
         sys.stderr.write("noobhack: invalid option `-p' requires a host\n")
         usage()
 
+    if "--crumbs" in opts:
+        opts_dict["breadcrumbs"] = True
+    else:
+        opts_dict["breadcrumbs"] = False
+
     for opt, val in options:
         if opt == "-h":
-            options["host"] = val
-            options["local"] = False
+            opts_dict["host"] = val
+            opts_dict["local"] = False
         elif opt == "-p":
-            options["port"] = val
+            opts_dict["port"] = val
 
     return opts_dict 
 
@@ -223,7 +230,7 @@ class Noobhack:
 
         self.game.redraw(window)
         if self.mode == "help":
-            self.helper.redraw(window)
+            self.helper.redraw(window, self.options["breadcrumbs"])
 
         window.refresh()
 

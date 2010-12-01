@@ -426,6 +426,7 @@ class Level:
         self.shops = set()
         self.ups = set()
         self.downs = set()
+        self.breadcrumbs = set()
         self.dlvl = dlvl
         self.branch = branch 
 
@@ -474,6 +475,10 @@ class Dungeon:
                                       self._level_teleport_handler)
         dispatcher.add_event_listener("trap-door", 
                                       self._trap_door_handler)
+        dispatcher.add_event_listener("move", self._bread_crumbs_handler)
+
+    def _bread_crumbs_handler(self, _, cursor):
+        self.current_level().breadcrumbs.add(cursor)
 
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
