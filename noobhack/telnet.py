@@ -17,7 +17,7 @@ class Telnet:
         self.conn.get_socket().send(buf)
 
     def read(self):
-        self.conn.read_very_eager()
+        return self.conn.read_very_eager()
 
     def open(self):
         self.conn = telnetlib.Telnet(self.host, self.port)
@@ -51,14 +51,10 @@ class Telnet:
             socket.send("%s%s\x27" % (telnetlib.IAC, telnetlib.WONT))
         elif self.conn.rawq == "\xff\xfa\x18\x01\xff\xf0":
             # We're being asked for the terminal type that we promised earlier
-            #
-            # TODO: I think this should probably be "vt102" now that we use an
-            # in-memory terminal emulator, but I can't check until I have a
-            # network connection.
             socket.send("%s%s\x18\x00%s%s%s" % 
                         (telnetlib.IAC,
                          telnetlib.SB,
-                         os.getenv("TERM"),
+                         "vt102",
                          telnetlib.IAC,
                          telnetlib.SE))
 
