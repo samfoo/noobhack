@@ -22,6 +22,16 @@ class Brain:
         self.dlvl = 0
         self.prev_cursor = (0, 0)
 
+    def charisma(self):
+        line = self._content()[-2]
+        match = re.search("Ch:(\\d+)", line)
+        if match is not None:
+            return int(match.groups()[0])
+        return None
+
+    def sucker(self):
+        return False
+
     def _dispatch_level_feature_events(self, data):
         match = re.search("There is an altar to .* \\((\\w+)\\) here.", data)
         if match is not None:
@@ -57,6 +67,9 @@ class Brain:
                 if match is not None:
                     dispatcher.dispatch("status", name, value)
 
+    def _content(self):
+        return [line for line in self.term.display if len(line.strip()) > 0]
+
     def _get_last_line(self):
         # The last line in the display is the one that contains the turn
         # information.
@@ -65,23 +78,6 @@ class Brain:
             if len(line) > 0:
                 break
         return line
-
-    def _dispatch_price_identify_event(self):
-        # TODO: Make sure that unpaid prices can only ever appear on the first
-        # line. I might have to check the second line too.
-        line = self.term.display[0]
-        match = re.search(shops.price, line, re.I)
-        if match is not None:
-            count = match.groups()[0]
-            item = match.groups()[1]
-            price = int(match.groups()[2])
-
-            if count == "a":
-                count = 1
-            else:
-                count = int(count)
-
-            dispatcher.dispatch("price-identify", count, item, price)
 
     def _dispatch_branch_change_event(self):
         if self.last_move == "down" and 3 <= self.dlvl <= 5 and \
@@ -157,7 +153,6 @@ class Brain:
         Callback attached to the output proxy.
         """
 
-        self._dispatch_price_identify_event()
         self._dispatch_status_events(data)
         self._dispatch_resistance_events(data)
         self._dispatch_turn_change_event()

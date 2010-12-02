@@ -1,7 +1,7 @@
 import unittest
 
-from game.dungeon import Dungeon, Level, Map
-from game.events import dispatcher
+from noobhack.game.dungeon import Dungeon, Level, Map
+from noobhack.game.events import dispatcher
 
 class MapTest(unittest.TestCase):
     def test_init(self):
