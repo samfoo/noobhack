@@ -336,9 +336,6 @@ class Helper:
                     dungeon_frame.addnstr(row, 3, "* " + shop, self.level_width-5)
                     row += 1
 
-        for row, feature in enumerate(features, 1):
-            dungeon_frame.addnstr(row, 1, feature, self.level_width-2)
-
         if len(features) == 0:
             center = (self.level_width / 2) - (len(default) / 2)
             dungeon_frame.addstr(1, center, default)
@@ -354,11 +351,16 @@ class Helper:
 
         def res_color(res):
             """Return the color of a resistance."""
-            if res == "fire": return curses.COLOR_RED
-            elif res == "cold": return curses.COLOR_BLUE 
-            elif res == "poison": return curses.COLOR_GREEN
-            elif res == "disintegration": return curses.COLOR_YELLOW
-            else: return -1
+            if res == "fire": 
+                return curses.COLOR_RED
+            elif res == "cold": 
+                return curses.COLOR_BLUE 
+            elif res == "poison": 
+                return curses.COLOR_GREEN
+            elif res == "disintegration": 
+                return curses.COLOR_YELLOW
+            else: 
+                return -1
 
         res_frame = curses.newwin(
             self._height(), 
@@ -387,7 +389,9 @@ class Helper:
         """
 
         items = sorted(items, lambda a, b: cmp(b[2], a[2]))
-        items = [("%s" % i[0], "%0.2f%%" % (float(i[2]) / 10.)) for i in items]
+        total_chance = sum(float(i[2]) for i in items)
+        items = [(i[0], i[1], (i[2] / total_chance) * 100.) for i in items]
+        items = [("%s" % i[0], "%0.2f%%" % float(i[2])) for i in items]
         if len(items) == 0:
             items = set([("(huh... can't identify)", "100%")])
 
@@ -402,6 +406,17 @@ class Helper:
             identify_frame.addstr(row, width - len(item[1]) - 2, item[1])
 
         return identify_frame
+
+    def _things_to_sell_identify(self):
+        line = self.brain.term.display[0]
+        match = re.search(shops.offer, line, re.I)
+        if match is not None:
+            price = int(match.groups()[0])
+            item = match.groups()[1]
+
+            return (item, price)
+
+        return None
 
     def _things_to_buy_identify(self):
         # TODO: Make sure that unpaid prices can only ever appear on the first
@@ -480,6 +495,12 @@ class Helper:
         if self._things_to_buy_identify() is not None:
             item, price = self._things_to_buy_identify()
             items = shops.buy_identify(self.brain.charisma(), item, price, self.brain.sucker())
+
+            identify_frame = self._identify_box(items)
+            identify_frame.overwrite(window)
+        elif self._things_to_sell_identify() is not None:
+            item, price = self._things_to_sell_identify()
+            items = shops.sell_identify(item, price, self.brain.sucker())
 
             identify_frame = self._identify_box(items)
             identify_frame.overwrite(window)

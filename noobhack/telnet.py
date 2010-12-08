@@ -1,4 +1,3 @@
-import os
 import telnetlib
 
 class Telnet:

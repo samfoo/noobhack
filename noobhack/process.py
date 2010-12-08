@@ -62,10 +62,17 @@ class Local:
         fcntl.ioctl(self.stdin, termios.TIOCSWINSZ, parent)
 
     def fileno(self):
+        """
+        Return the fileno of the pipe.
+        """
+
         return self.pipe
 
     def close(self):
-        # Kill our child process. Cuban hit squad.
+        """
+        Kill our child process. Cuban hit squad.
+        """
+
         os.kill(self.pid, signal.SIGTERM)
 
     def write(self, buf):
