@@ -476,10 +476,14 @@ class Helper:
 
         for crumb in breadcrumbs:
             x, y = crumb
-            if self.brain.char_at(x, y) not in [".", "#"]: 
+            if self.brain.char_at(x, y) not in [".", "#", " "]: 
                 # Ignore anything that's not something we can step on.
                 continue
-            window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
+
+            if self.brain.char_at(x, y) == " ":
+                window.addch(y, x, ".", curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
+            else:
+                window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
 
         cur_x, cur_y = self.brain.term.cursor()
         window.move(cur_y, cur_x)

@@ -156,7 +156,11 @@ class Noobhack:
 
     def load(self):
         if os.path.exists(self.save_file):
-            return pickle.load(open(self.save_file, "r"))
+            save_file = open(self.save_file, "r")
+            try:
+                return pickle.load(save_file)
+            finally:
+                save_file.close()
         else:
             raise RuntimeError(
                 "NetHack is trying to restore a game file, but noobhack " + 

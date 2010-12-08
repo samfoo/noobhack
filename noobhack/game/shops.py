@@ -1,4 +1,4 @@
-entrance = "Welcome( again)? to \\w+'s (.*)!"
+entrance = "Welcome( again)? to [\\w ]+'s (.*)!"
 price = "[^(only)] (a|\\d+) (.*) \\(unpaid, (\\d+) zorkmids\\)\\."
 offer = "offers (\\d+) gold pieces for your (.*)"
 
