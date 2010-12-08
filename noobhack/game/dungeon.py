@@ -116,7 +116,7 @@ def looks_like_mines(display):
                     return True
         return False
 
-    scanned = [indices(row.strip()) for row in display]
+    scanned = [indices(row) for row in display]
     for i in xrange(len(scanned)):
         if i + 1 == len(scanned):
             break
