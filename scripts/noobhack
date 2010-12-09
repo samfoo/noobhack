@@ -24,7 +24,7 @@ def get_parser():
         local=True, 
         port=23,
         help=False,
-        encoding="utf-8",
+        encoding="ascii",
         crumbs=False
     )
 
