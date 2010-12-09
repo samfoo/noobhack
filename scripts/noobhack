@@ -3,9 +3,9 @@
 import os
 import re
 import sys
-import getopt
 import select
 import curses
+import optparse 
 
 import cPickle as pickle
 
@@ -14,57 +14,74 @@ import vt102
 from noobhack import ui, telnet, process, proxy
 from noobhack.game import player, dungeon, brain
 
-def usage():
-    sys.stderr.write("""Usage: noobhack.py [options]
-Help: noobhack helps you ascend in nethack.
-    By default, it runs a copy of nethack locally, however it's possible to
-    connect to a remote telnet server and proxy a game.
-Options:
-    -l          Play a local game (default)
-    -h          Host to play a remote game on
-    -p          Port to connect to the remote host (default: 23)
+def get_parser():
+    parser = optparse.OptionParser(
+        description="noobhack helps you ascend playing nethack."
+    )
 
-    --crumbs    Display breadcrumbs with the helper overlay.""")
-    sys.stderr.flush()
-    sys.exit(1)
+    parser.set_defaults(
+        local=True, 
+        port=23,
+        help=False,
+        crumbs=False
+    )
+
+    parser.remove_option("-h")
+
+    parser.add_option("--help",
+                      help="show this message and exit",
+                      action="store_true",
+                      dest="help")
+
+    parser.add_option("-l", 
+                      "--local", 
+                      help="play a local game [default: %default]", 
+                      action="store_true", 
+                      dest="local")
+
+    parser.add_option("-h", 
+                      "--host", 
+                      help="play a remote game on HOST", 
+                      type="string",
+                      dest="host")
+
+    parser.add_option("-p", 
+                      "--port", 
+                      help="connect to the remote host on PORT [default: %default]", 
+                      type="int",
+                      dest="port")
+
+    parser.add_option("-s", 
+                      "--save", 
+                      help="use a specific save file label (if playing multiple games)", 
+                      type="string",
+                      metavar="NAME",
+                      dest="save")
+
+    parser.add_option("--crumbs", 
+                      help="display breadcrumbs when the helper overlay is on screen",
+                      action="store_true",
+                      dest="crumbs")
+
+    return parser
+
 
 def parse_options():
     """
     Parse commandline options and return a dict with any settings.
     """
 
-    opts_dict = {"local": True}
+    parser = get_parser()
+    (options, args) = parser.parse_args()
 
-    options, remaining = \
-        getopt.getopt(sys.argv[1:], "lh:p:", ["crumbs"])
+    if options.host is not None:
+        options.local = False
 
-    if len(remaining) > 0:
-        sys.stderr.write("noobhack: unrecognized argument(s) `%s'\n" % \
-                         ",".join(remaining))
-        usage()
+    if options.help:
+        get_parser().print_help()
+        sys.exit(1)
 
-    opts = [pair[0] for pair in options]
-    if ("-h" in opts and "-l" in opts) or ("-p" in opts and "-l" in opts):
-        sys.stderr.write("noobhack: invalid option `-p' or `-h' with `-l'")
-        usage()
-
-    if "-p" in opts and "-h" not in opts:
-        sys.stderr.write("noobhack: invalid option `-p' requires a host\n")
-        usage()
-
-    if "--crumbs" in opts:
-        opts_dict["breadcrumbs"] = True
-    else:
-        opts_dict["breadcrumbs"] = False
-
-    for opt, val in options:
-        if opt == "-h":
-            opts_dict["host"] = val
-            opts_dict["local"] = False
-        elif opt == "-p":
-            opts_dict["port"] = val
-
-    return opts_dict 
+    return options
 
 class Noobhack:
     """
@@ -73,10 +90,15 @@ class Noobhack:
     """
 
     noobhack_dir = os.path.expanduser("~/.noobhack")
-    save_file = os.path.join(noobhack_dir, "save")
 
     def __init__(self, toggle_help="\t", toggle_map="`"):
         self.options = parse_options()
+
+        if self.options.save:
+            self.save_file = os.path.join(self.noobhack_dir, "save-%s" % self.options.save)
+        else:
+            self.save_file = os.path.join(self.noobhack_dir, "save")
+
         self.toggle_help = toggle_help
         self.toggle_map = toggle_map
         self.mode = "game"
@@ -191,12 +213,12 @@ class Noobhack:
         """
 
         try:
-            if self.options.get("local", False):
+            if self.options.local:
                 conn = process.Local()
             else:
                 conn = telnet.Telnet(
-                    self.options["host"], 
-                    self.options.get("port", 23)
+                    self.options.host,
+                    self.options.port
                 )
             conn.open()
         except IOError, error:
@@ -234,7 +256,7 @@ class Noobhack:
 
         self.game.redraw(window)
         if self.mode == "help":
-            self.helper.redraw(window, self.options["breadcrumbs"])
+            self.helper.redraw(window, self.options.crumbs)
 
         window.refresh()
 
