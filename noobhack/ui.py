@@ -99,8 +99,8 @@ class Map:
         node.border("|", "|", "-", "-", "+", "+", "+", "+")
 
         if current:
-            node.addstr(0, 2, title, 
-                        curses.A_BOLD | get_color(curses.COLOR_YELLOW))
+            node.addstr(0, 2, title)
+            node.chgat(0, 2, len(title), curses.A_BOLD | get_color(curses.COLOR_YELLOW))
         else:
             node.addstr(0, 2, title)
 
@@ -134,8 +134,8 @@ class Map:
         drawn_x, drawn_y = self._draw_level(window, y, x, level, is_current)
 
         if graph.is_orphan(level):
-            window.addstr(drawn_y - 1, x, "*", 
-                          curses.A_BOLD | get_color(curses.COLOR_RED))
+            window.addstr(drawn_y - 1, x, "*")
+            window.chgat(drawn_y - 1, x, 1, curses.A_BOLD | get_color(curses.COLOR_RED))
 
         # Now draw any links that this current level has with others...
         children = graph.children(level)
@@ -147,22 +147,26 @@ class Map:
             child_x = self._get_level_x(child)
             if child_x == x:
                 # Same column, just add a down pipe.
-                window.addstr(y + 2, x, "|", get_color(curses.COLOR_CYAN))
+                window.addstr(y + 2, x, "|")
+                window.chgat(y + 2, x, get_color(curses.COLOR_CYAN))
             elif child_x < x:
                 # Column to the left...
                 slash_x = (child_x + 7)
-                window.addstr(y + 2, slash_x, "/", get_color(curses.COLOR_CYAN))
+                window.addstr(y + 2, slash_x, "/")
+                window.chgat(y + 2, slash_x, 1, get_color(curses.COLOR_CYAN)) 
                 connector_x = slash_x + 1
                 connector = "." + "-" * (drawn_x - slash_x - 2)
-                window.addstr(y + 1, slash_x + 1, connector, 
-                              get_color(curses.COLOR_CYAN))
+                window.addstr(y + 1, slash_x + 1, connector)
+                window.chgat(y + 1, slash_x + 1, len(connector), get_color(curses.COLOR_CYAN))
             else:
                 # Column to the right...
                 slash_x = (child_x - 7)
-                window.addstr(y + 2, slash_x, "\\", get_color(curses.COLOR_CYAN))
+                window.addstr(y + 2, slash_x, "\\")
+                window.chgat(y + 2, slash_x, 1, get_color(curses.COLOR_CYAN))
                 connector_x = x + (x - drawn_x)
                 connector = ("-" * (slash_x - connector_x - 1)) + "."
-                window.addstr(y + 1, connector_x, connector, get_color(curses.COLOR_CYAN))
+                window.addstr(y + 1, connector_x, connector)
+                window.chgat(y + 1, connector_x, len(connector), get_color(curses.COLOR_CYAN))
 
     def _draw_legend(self):
         """
@@ -322,7 +326,8 @@ class Helper:
 
         dungeon_frame.erase()
         dungeon_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
-        dungeon_frame.addstr(0, 2, " this level ", get_color(curses.COLOR_CYAN))
+        dungeon_frame.addstr(0, 2, " this level ")
+        dungeon_frame.chgat(0, 2, len(" this level "), get_color(curses.COLOR_CYAN))
 
         features = sorted(level.features)
         row = 1
@@ -373,11 +378,13 @@ class Helper:
 
         res_frame.erase()
         res_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
-        res_frame.addstr(0, 2, " resist ", get_color(curses.COLOR_CYAN))
+        res_frame.addstr(0, 2, " resist ")
+        res_frame.chgat(0, 2, len(" resist "), get_color(curses.COLOR_CYAN))
         resistances = sorted(self.player.resistances)
         for row, res in enumerate(resistances, 1):
             color = get_color(res_color(res))
-            res_frame.addnstr(row, 1, res, self.resistance_width-2, color)
+            res_frame.addnstr(row, 1, res, self.resistance_width-2)
+            res_frame.chgat(row, 1, min(len(res), self.resistance_width-2), color)
 
         if len(resistances) == 0:
             center = (self.resistance_width / 2) - (len(default) / 2)
@@ -401,7 +408,8 @@ class Helper:
 
         identify_frame = curses.newwin(len(items) + 1, width, 1, 0)
         identify_frame.border("|", "|", " ", "-", "|", "|", "+", "+")
-        identify_frame.addstr(len(items), 2, " identify ", get_color(curses.COLOR_CYAN))
+        identify_frame.addstr(len(items), 2, " identify ")
+        identify_frame.chgat(len(items), 2, len(" identify "), get_color(curses.COLOR_CYAN))
 
         for row, item in enumerate(items):
             identify_frame.addstr(row, 2, item[0])
@@ -457,7 +465,8 @@ class Helper:
 
         status_frame.erase()
         status_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
-        status_frame.addstr(0, 2, " status ", get_color(curses.COLOR_CYAN))
+        status_frame.addstr(0, 2, " status ")
+        status_frame.chgat(0, 2, len(" status "), get_color(curses.COLOR_CYAN))
         statuses = self._get_statuses()
         for row, stat in enumerate(statuses, 1):
             attrs = []
@@ -483,9 +492,9 @@ class Helper:
                 continue
 
             if self.brain.char_at(x, y) == " ":
-                window.addch(y, x, ".", curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
-            else:
-                window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
+                window.addch(y, x, ".")
+
+            window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
 
         cur_x, cur_y = self.brain.term.cursor()
         window.move(cur_y, cur_x)
