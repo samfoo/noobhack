@@ -1,3 +1,4 @@
+import os
 import telnetlib
 
 class Telnet:
@@ -50,9 +51,18 @@ class Telnet:
             # Tell the server to sod off, we won't send an x-display terminal
             socket.send("%s%s\x23" % (telnetlib.IAC, telnetlib.WONT))
         elif command == telnetlib.DO and option == "\x27":
-            # And we won't send the damn environmnet either (needy bastard)
-            socket.send("%s%s\x27" % (telnetlib.IAC, telnetlib.WONT))
-        elif self.conn.rawq == "\xff\xfa\x18\x01\xff\xf0":
+            # We will send the environment, though, since it might have nethack
+            # specific options in it.
+            socket.send("%s%s\x27" % (telnetlib.IAC, telnetlib.WILL))
+        elif self.conn.rawq.startswith("\xff\xfa\x27\x01\xff\xf0\xff\xfa"):
+            # We're being asked for the environment settings that we promised
+            # earlier
+            socket.send("%s%s\x27\x00%s%s%s" %
+                        (telnetlib.IAC,
+                         telnetlib.SB,
+                         '\x00"NETHACKOPTIONS"\x01"%s"' % os.environ.get("NETHACKOPTIONS", ""),
+                         telnetlib.IAC,
+                         telnetlib.SE))
             # We're being asked for the terminal type that we promised earlier
             socket.send("%s%s\x18\x00%s%s%s" % 
                         (telnetlib.IAC,
