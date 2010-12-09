@@ -542,7 +542,12 @@ class Game:
             background = colors.get(background, -1)
             char_style = [styles.get(s, curses.A_NORMAL) for s in char_style]
             attrs = char_style + [get_color(foreground, background)]
-            window.addch(row, col, char, reduce(lambda a, b: a | b, attrs))
+            try:
+                window.addch(row, col, char, reduce(lambda a, b: a | b, attrs))
+            except TypeError:
+                # This curses build doesn't support unicode. First, let's try 
+                # converting to ascii and redisplaying
+                window.addch(row, col, str(char), reduce(lambda a, b: a | b, attrs))
 
     def redraw(self, window):
         """
