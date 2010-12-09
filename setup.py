@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="noobhack",
-    version="0.2",
+    version="0.3",
     author="Sam Gibson",
     author_email="sam@ifdown.net",
     url="https://github.com/samfoo/noobhack",
