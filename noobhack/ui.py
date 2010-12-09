@@ -9,6 +9,7 @@ import sys
 import fcntl
 import curses 
 import struct
+import locale
 import termios
 
 from noobhack.game import status, shops
@@ -527,6 +528,7 @@ class Game:
 
     def __init__(self, term):
         self.term = term
+        self.code = locale.getpreferredencoding()
 
     def _redraw_row(self, window, row):
         """
@@ -542,7 +544,8 @@ class Game:
             background = colors.get(background, -1)
             char_style = [styles.get(s, curses.A_NORMAL) for s in char_style]
             attrs = char_style + [get_color(foreground, background)]
-            window.addch(row, col, char, reduce(lambda a, b: a | b, attrs))
+            window.addstr(row, col, char.encode(self.code)) 
+            window.chgat(row, col, 1, reduce(lambda a, b: a | b, attrs)) 
 
     def redraw(self, window):
         """

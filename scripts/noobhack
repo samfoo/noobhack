@@ -5,6 +5,7 @@ import re
 import sys
 import select
 import curses
+import locale
 import optparse 
 
 import cPickle as pickle
@@ -23,6 +24,7 @@ def get_parser():
         local=True, 
         port=23,
         help=False,
+        encoding="utf-8",
         crumbs=False
     )
 
@@ -62,6 +64,13 @@ def get_parser():
                       help="display breadcrumbs when the helper overlay is on screen",
                       action="store_true",
                       dest="crumbs")
+    
+    parser.add_option("-e", 
+                      "--encoding",
+                      help="set the terminal emulator to ENC [default: %default]",
+                      type="string", 
+                      metavar="ENC",
+                      dest="encoding")
 
     return parser
 
@@ -122,7 +131,7 @@ class Noobhack:
         # deal with it rather than hunt forever trying to figure out what I'm
         # doing wrong with curses.
         rows, cols = ui.size()
-        self.term = vt102.screen((rows-1, cols))
+        self.term = vt102.screen((rows-1, cols), self.options.encoding)
         self.term.attach(self.stream)
         self.output_proxy.register(self.stream.process)
 
@@ -289,6 +298,8 @@ class Noobhack:
             self._game(window)
 
 if __name__ == "__main__":
+    locale.setlocale(locale.LC_ALL, "")
+
     hack = Noobhack()
     try:
         curses.wrapper(hack.run)
