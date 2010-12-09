@@ -16,7 +16,11 @@ class Telnet:
         self.conn.get_socket().send(buf)
 
     def read(self):
-        return self.conn.read_very_eager()
+        try:
+            return self.conn.read_very_eager()
+        except EOFError, e:
+            # The telnet connection closed.
+            raise IOError(e)
 
     def open(self):
         self.conn = telnetlib.Telnet(self.host, self.port)
@@ -53,7 +57,6 @@ class Telnet:
             socket.send("%s%s\x18\x00%s%s%s" % 
                         (telnetlib.IAC,
                          telnetlib.SB,
-                         "vt102",
+                         "xterm-color",
                          telnetlib.IAC,
                          telnetlib.SE))
-
