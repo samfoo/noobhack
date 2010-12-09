@@ -35,6 +35,7 @@ styles = {
     "dim": curses.A_DIM,
     "underline": curses.A_UNDERLINE,
     "blink": curses.A_BLINK,
+    "reverse": curses.A_REVERSE,
 }
 
 def get_color(foreground, background=-1, registered={}):
