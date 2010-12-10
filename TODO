@@ -2,6 +2,3 @@
 * Support for branchporting.
 * Installation documentation and confirmed testing that it works as a script
   installed somewhere system accessible.
-
-* Support DECgraphics (techically already supported, but I don't know what code
-  page it should be using or anything)
