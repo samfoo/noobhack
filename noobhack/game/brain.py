@@ -82,9 +82,9 @@ class Brain:
 
     def _dispatch_branch_change_event(self):
         level = [line.translate(ibm) for line in self.term.display]
-        if self.last_move == "down" and 3 <= self.dlvl <= 5 and \
+        if self.last_move == "down" and 2 <= self.dlvl <= 4 and \
            dungeon.looks_like_mines(level): 
-            # The only entrace to the mines is between levels 3 and 5 and
+            # The only entrace to the mines is between levels 2 and 4 and
             # the player has to have been traveling down to get there. Also
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
@@ -94,10 +94,20 @@ class Brain:
             # If the player traveled up and arrived at a level that looks
             # like sokoban, she's definitely in sokoban.
             dispatcher.dispatch("branch-change", "sokoban")
+        elif self.dlvl == -1:
+            dispatcher.dispatch("branch-change", "earth")
+        elif self.dlvl == -2:
+            dispatcher.dispatch("branch-change", "air")
+        elif self.dlvl == -3:
+            dispatcher.dispatch("branch-change", "fire")
+        elif self.dlvl == -4:
+            dispatcher.dispatch("branch-change", "water")
+        elif self.dlvl == -5:
+            dispatcher.dispatch("branch-change", "astral")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
-        match = re.search("Dlvl:(\\d+)", line)
+        match = re.search("Dlvl:(-?\\d+)", line)
         if match is not None:
             dlvl = int(match.groups()[0])
             if dlvl != self.dlvl:

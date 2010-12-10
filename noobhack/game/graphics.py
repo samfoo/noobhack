@@ -1,5 +1,3 @@
-import string
-
 ibm = dict( 
     zip(
     (ord(code_point) for code_point in

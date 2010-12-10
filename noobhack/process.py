@@ -44,7 +44,7 @@ class Local:
             # Set the initial size of the child pty to my own size.
             self.resize_child()
 
-    def _close(self, *args):
+    def _close(self, *_):
         try:
             self.stdout.close()
             self.stdin.close()
@@ -55,7 +55,7 @@ class Local:
 
         raise IOError("Nethack exited.")
 
-    def resize_child(self, *args):
+    def resize_child(self, *_):
         # Get the host app's terminal size first.
         parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
         # Now set the child (conduit) app's size properly

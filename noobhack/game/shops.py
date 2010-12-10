@@ -433,7 +433,7 @@ def get_item_set(name):
     elif "shoes" in name or "boots" in name:
         return armor["boots"]
 
-def buy_identify(charisma, item, price, sucker=False):
+def buy_identify(charisma, item, cost, sucker=False):
     possibles = get_item_set(item)
     if possibles is None:
         return set() 
@@ -446,15 +446,15 @@ def buy_identify(charisma, item, price, sucker=False):
     if sucker:
         real_possibles = [(p[0], p[1] + int(p[1] * 0.333)) + p[2:] for p in real_possibles]
     
-    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == price])
+    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == cost])
     if len(appearance_ids) > 0:
         return appearance_ids 
 
-    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == price])
+    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == cost])
 
     return price_ids
 
-def sell_identify(item, price, sucker=False):
+def sell_identify(item, cost, sucker=False):
     possibles = get_item_set(item)
     if possibles is None:
         return set()
@@ -467,11 +467,11 @@ def sell_identify(item, price, sucker=False):
     random_markdown = [(p[0], int(p[1] * 0.25)) + p[2:] for p in possibles]
     real_possibles += random_markdown
 
-    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == price])
+    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == cost])
     if len(appearance_ids) > 0:
         return appearance_ids
 
-    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == price])
+    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == cost])
 
     return price_ids
 

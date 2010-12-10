@@ -118,7 +118,12 @@ class Map:
         """
         Given a level, return the y-coord where its box should be drawn.
         """
-        return level.dlvl * 4 + (size()[0] / 2) 
+        if level.dlvl > 0:
+            return level.dlvl * 4 + (size()[0] / 2) 
+        elif -1 >= level.dlvl >= -4:
+            return (size()[0] / 2)
+        else:
+            return (size()[0] / 2) - 4 
 
     def _r_draw_branch(self, window, level):
         """
@@ -214,11 +219,21 @@ class Map:
         self.columns["main"] = approx_width / 2
         self.columns["mines"] = (approx_width / 2) - 20 
         self.columns["sokoban"] = (approx_width / 2) + 20 
+        self.columns["earth"] = (approx_width / 2 ) - (approx_width / 4)
+        self.columns["air"] = (approx_width / 2) - 8 
+        self.columns["fire"] = (approx_width / 2) + 8 
+        self.columns["water"] = (approx_width / 2) + (approx_width / 4)
+        self.columns["astral"] = approx_width / 2
 
         self._r_draw_branch(plane, self.dungeon.graph.first())
 
+        # Draw the elemental planes
+        for dlvl in [lvl for lvl in self.dungeon.graph.levels.keys() if lvl < 1]:
+            element = self.dungeon.graph.levels[dlvl][0]
+            self._r_draw_branch(plane, element)
+
         # Don't forget to draw the orphaned levels too...
-        for dlvl in [lvl for lvl in self.dungeon.graph.levels.keys() if lvl != 1]:
+        for dlvl in [lvl for lvl in self.dungeon.graph.levels.keys() if lvl > 1]:
             for orphan in self.dungeon.graph.orphans(dlvl):
                 self._r_draw_branch(plane, orphan)
 
@@ -246,7 +261,7 @@ class Map:
             # important. Implement them here.
             key = sys.stdin.read(1)
             if key == "k":
-                scroll_y = max(scroll_y - 1, 4) 
+                scroll_y = max(scroll_y - 1, 0) 
             elif key == "j":
                 scroll_y = min(scroll_y + 1, approx_height - size()[0])
             elif key == close or key == "\x1b":
