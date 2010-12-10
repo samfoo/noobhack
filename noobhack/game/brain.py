@@ -5,6 +5,7 @@ consuming and processing those events in an intelligent way.
 
 import re
 
+from noobhack.game.graphics import ibm
 from noobhack.game import shops, status, resistances, sounds, dungeon
 from noobhack.game.events import dispatcher
 
@@ -68,27 +69,28 @@ class Brain:
                     dispatcher.dispatch("status", name, value)
 
     def _content(self):
-        return [line for line in self.term.display if len(line.strip()) > 0]
+        return [line.translate(ibm) for line in self.term.display if len(line.strip()) > 0]
 
     def _get_last_line(self):
         # The last line in the display is the one that contains the turn
         # information.
         for i in xrange(len(self.term.display)-1, -1, -1):
-            line = self.term.display[i].strip()
+            line = self.term.display[i].translate(ibm).strip()
             if len(line) > 0:
                 break
         return line
 
     def _dispatch_branch_change_event(self):
+        level = [line.translate(ibm) for line in self.term.display]
         if self.last_move == "down" and 3 <= self.dlvl <= 5 and \
-           dungeon.looks_like_mines(self.term.display): 
+           dungeon.looks_like_mines(level): 
             # The only entrace to the mines is between levels 3 and 5 and
             # the player has to have been traveling down to get there. Also
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
             # however is instantly identifiable. 
             dispatcher.dispatch("branch-change", "mines")
-        elif self.last_move == "up" and dungeon.looks_like_sokoban(self.term.display):
+        elif self.last_move == "up" and dungeon.looks_like_sokoban(level):
             # If the player traveled up and arrived at a level that looks
             # like sokoban, she's definitely in sokoban.
             dispatcher.dispatch("branch-change", "sokoban")
@@ -143,7 +145,7 @@ class Brain:
         return self.char_at(*self.term.cursor()) == "@"
 
     def char_at(self, x, y):
-        row = self.term.display[y]
+        row = self.term.display[y].translate(ibm)
         col = row[x]
 
         return col
