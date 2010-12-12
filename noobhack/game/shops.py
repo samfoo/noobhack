@@ -324,11 +324,11 @@ armor = {
         ("dwarvish iron helm", 20, 6, "hard hat"),
     ]),
     "gloves": set([
-        ("leather gloves", 8, 16, "old gloves"),
-        ("yugake", 8, 16, "old gloves"),
-        ("gauntlets of dexterity", 50, 8, "padded gloves"),
-        ("gauntlets of fumbling", 50, 8, "riding gloves"),
-        ("gauntlets of power", 50, 8, "fencing gloves"),
+        ("leather gloves", 8, 16, "pair of old gloves"),
+        ("yugake", 8, 16, "pair of old gloves"),
+        ("gauntlets of dexterity", 50, 8, "pair of padded gloves"),
+        ("gauntlets of fumbling", 50, 8, "pair of riding gloves"),
+        ("gauntlets of power", 50, 8, "pair of fencing gloves"),
     ]),
     "shields": set([
         ("small shield", 3, 6, None),
@@ -340,16 +340,16 @@ armor = {
         ("shield of reflection", 50, 3, "polished silver shield"),
     ]),
     "boots": set([
-        ("low boots", 8, 25, "walking shoes"),
-        ("elven boots", 8, 12, "mud boots"),
-        ("kicking boots", 8, 12, "buckled boots"),
-        ("fumble boots", 30, 12, "riding boots"),
-        ("levitation boots", 30, 12, "snow boots"),
-        ("jumping boots", 50, 12, "hiking boots"),
-        ("speed boots", 50, 12, "combat boots"),
-        ("water walking boots", 50, 12, "jungle boots"),
-        ("high boots", 12, 15, "jackboots"),
-        ("iron shoes", 16, 7, "hard shoes"),
+        ("low boots", 8, 25, "pair of walking shoes"),
+        ("elven boots", 8, 12, "pair of mud boots"),
+        ("kicking boots", 8, 12, "pair of buckled boots"),
+        ("fumble boots", 30, 12, "pair of riding boots"),
+        ("levitation boots", 30, 12, "pair of snow boots"),
+        ("jumping boots", 50, 12, "pair of hiking boots"),
+        ("speed boots", 50, 12, "pair of combat boots"),
+        ("water walking boots", 50, 12, "pair of jungle boots"),
+        ("high boots", 12, 15, "pair of jackboots"),
+        ("iron shoes", 16, 7, "pair of hard shoes"),
     ]),
 }
 
@@ -439,18 +439,18 @@ def buy_identify(charisma, item, cost, sucker=False):
         return set() 
 
     markup = buy_price_markup(charisma)
-    price_adjusted = [(p[0], p[1] + int(p[1] * markup)) + p[2:] for p in possibles]
-    random_markup = [(p[0], p[1] + int(p[1] * 0.333)) + p[2:] for p in price_adjusted]
+    price_adjusted = [(p[0], p[1] + round(p[1] * markup)) + p[2:] for p in possibles]
+    random_markup = [(p[0], p[1] + round(p[1] * 0.333)) + p[2:] for p in price_adjusted]
     real_possibles = price_adjusted + random_markup
 
     if sucker:
-        real_possibles = [(p[0], p[1] + int(p[1] * 0.333)) + p[2:] for p in real_possibles]
+        real_possibles = [(p[0], p[1] + round(p[1] * 0.333)) + p[2:] for p in real_possibles]
     
-    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == cost])
+    appearance_ids = set([p for p in real_possibles if p[3] == item and abs(p[1] - cost) <= 1])
     if len(appearance_ids) > 0:
         return appearance_ids 
 
-    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == cost])
+    price_ids = set([p for p in real_possibles if abs(p[1] - cost) <= 1])
 
     return price_ids
 
@@ -460,18 +460,18 @@ def sell_identify(item, cost, sucker=False):
         return set()
 
     if sucker:
-        real_possibles = [(p[0], int(p[1] * 0.333)) + p[2:] for p in possibles]
+        real_possibles = [(p[0], round(p[1] * 0.333)) + p[2:] for p in possibles]
     else:
-        real_possibles = [(p[0], int(p[1] * 0.5)) + p[2:] for p in possibles]
+        real_possibles = [(p[0], round(p[1] * 0.5)) + p[2:] for p in possibles]
 
-    random_markdown = [(p[0], int(p[1] * 0.25)) + p[2:] for p in possibles]
+    random_markdown = [(p[0], round(p[1] * 0.25)) + p[2:] for p in possibles]
     real_possibles += random_markdown
 
-    appearance_ids = set([p for p in real_possibles if p[3] == item and p[1] == cost])
+    appearance_ids = set([p for p in real_possibles if p[3] == item and abs(p[1] - cost) <= 1])
     if len(appearance_ids) > 0:
         return appearance_ids
 
-    price_ids = set([p for p in real_possibles if p[3] is None and p[1] == cost])
+    price_ids = set([p for p in real_possibles if abs(p[1] - cost) <= 1])
 
     return price_ids
 
