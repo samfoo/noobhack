@@ -560,16 +560,34 @@ class Game:
         the text from the in-memory terminal out and setting the color/style
         attributes appropriately.
         """
+        row_c = self.term.display[row].encode(self.code)
+        window.addstr(row, 0, row_c)
+
         row_a = self.term.attributes[row]
-        row_c = self.term.display[row]
-        for col, (char, (char_style, foreground, background)) in enumerate(zip(row_c, row_a)): 
+        for col, (char_style, foreground, background) in enumerate(row_a): 
             char_style = set(char_style)
             foreground = colors.get(foreground, -1)
             background = colors.get(background, -1)
             char_style = [styles.get(s, curses.A_NORMAL) for s in char_style]
             attrs = char_style + [get_color(foreground, background)]
-            window.addstr(row, col, char.encode(self.code)) 
             window.chgat(row, col, 1, reduce(lambda a, b: a | b, attrs)) 
+
+        if "HP:" in row_c:
+            # Highlight health depending on much much is left.
+            match = re.search("HP:(\\d+)\\((\\d+)\\)", row_c)
+            if match is not None:
+                hp, hp_max = match.groups()
+                ratio = float(hp) / float(hp_max)
+
+                if ratio <= 0.25:
+                    attrs = [curses.A_BOLD, get_color(curses.COLOR_WHITE, curses.COLOR_RED)]
+                elif ratio <= 0.5:
+                    attrs = [curses.A_BOLD, get_color(curses.COLOR_YELLOW)]
+                else:
+                    attrs = [curses.A_BOLD, get_color(curses.COLOR_GREEN)]
+                attrs = reduce(lambda a, b: a | b, attrs)
+                window.chgat(row, match.start() + 3, match.end() - match.start() - 3, attrs)
+
 
     def redraw(self, window):
         """
