@@ -112,7 +112,17 @@ class Map:
         """
         Given a level, return the x-coord where its box should be drawn.
         """
-        return self.columns[level.branch] 
+        graph = self.dungeon.graph
+        siblings_whose_branch_is_ambiguous = \
+                [s for s in graph.levels[level.dlvl] if s.branch == level.branch and s != level]
+
+        if len(siblings_whose_branch_is_ambiguous) > 0:
+            order = [l for l in graph.levels[level.dlvl] if l.branch == level.branch]
+            far_left = self.columns[level.branch] - \
+                    (len(siblings_whose_branch_is_ambiguous) / 2) * 10
+            return far_left + 10 * order.index(level)
+        else:
+            return self.columns[level.branch] 
 
     def _get_level_y(self, level):
         """

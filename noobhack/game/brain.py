@@ -82,9 +82,9 @@ class Brain:
 
     def _dispatch_branch_change_event(self):
         level = [line.translate(ibm) for line in self.term.display]
-        if self.last_move == "down" and 2 <= self.dlvl <= 4 and \
+        if self.last_move == "down" and 3 <= self.dlvl <= 10 and \
            dungeon.looks_like_mines(level): 
-            # The only entrace to the mines is between levels 2 and 4 and
+            # The only entrace to the mines is between levels 3 and 5 and
             # the player has to have been traveling down to get there. Also
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
