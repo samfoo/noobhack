@@ -72,6 +72,12 @@ def get_parser():
                       metavar="ENC",
                       dest="encoding")
 
+    parser.add_option("-w",
+                      "--wizard",
+                      help="start the game in wizard mode",
+                      action="store_true",
+                      dest="wizard")
+
     return parser
 
 
@@ -223,7 +229,7 @@ class Noobhack:
 
         try:
             if self.options.local:
-                conn = process.Local()
+                conn = process.Local(self.options.wizard)
             else:
                 conn = telnet.Telnet(
                     self.options.host,
