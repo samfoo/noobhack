@@ -72,11 +72,11 @@ def get_parser():
                       metavar="ENC",
                       dest="encoding")
 
-    parser.add_option("-w",
-                      "--wizard",
-                      help="start the game in wizard mode",
+    parser.add_option("-d",
+                      "--debug",
+                      help="start the game in debug mode",
                       action="store_true",
-                      dest="wizard")
+                      dest="debug")
 
     return parser
 
@@ -198,6 +198,8 @@ class Noobhack:
                 return pickle.load(save_file)
             finally:
                 save_file.close()
+        elif self.options.debug:
+            return player.Player(), dungeon.Dungeon() 
         else:
             raise RuntimeError(
                 "NetHack is trying to restore a game file, but noobhack " + 
@@ -229,7 +231,7 @@ class Noobhack:
 
         try:
             if self.options.local:
-                conn = process.Local(self.options.wizard)
+                conn = process.Local(self.options.debug)
             else:
                 conn = telnet.Telnet(
                     self.options.host,

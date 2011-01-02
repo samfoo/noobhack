@@ -11,8 +11,8 @@ class Local:
     forked into a pty.
     """
 
-    def __init__(self, wizard=False):
-        self.wizard = wizard
+    def __init__(self, debug=False):
+        self.debug = debug
         self.pipe = None
         self.stdin = None
         self.stdout = None
@@ -29,7 +29,7 @@ class Local:
             # it's used by dgamelaunch which is a bit confusing. However, 
             # without *some* argument execvp doesn't seem to like nethack and
             # launches a shell instead? It's quite confusing.
-            if self.wizard:
+            if self.debug:
                 os.execvpe("nethack", ["--proxy", "-D"], os.environ)
             else:
                 os.execvpe("nethack", ["--proxy"], os.environ)

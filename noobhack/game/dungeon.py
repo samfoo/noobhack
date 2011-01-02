@@ -15,7 +15,11 @@ messages = {
     "trap-door": set((
         "A trap door opens up under you!",
         "Air currents pull you down into a hole!",
-    ))
+    )),
+    "level-teleport": set((
+        "You rise up, through the ceiling!",
+        "You dig a hole through the floor.  You fall through...",
+    )),
 }
 
 def looks_like_sokoban(display):
@@ -456,7 +460,6 @@ class Dungeon:
     def __init__(self):
         self.graph = Map()
         self.level = 1
-        self.fell_through_trap = False
         self.went_through_lvl_tel = False
 
     def listen(self):
@@ -471,7 +474,7 @@ class Dungeon:
         dispatcher.add_event_listener("level-teleport",
                                       self._level_teleport_handler)
         dispatcher.add_event_listener("trap-door", 
-                                      self._trap_door_handler)
+                                      self._level_teleport_handler)
         dispatcher.add_event_listener("move", self._bread_crumbs_handler)
 
     def _bread_crumbs_handler(self, _, cursor):
@@ -488,11 +491,8 @@ class Dungeon:
     def _level_feature_handler(self, _, feature):
         self.current_level().features.add(feature)
 
-    def _trap_door_handler(self, _):
-        self.fell_through_trap = True
-
     def _level_teleport_handler(self, _):
-        self.went_through_lvl_tel = True
+        self.went_through_lvl_tel = True 
 
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:
@@ -502,11 +502,9 @@ class Dungeon:
             return
 
         if abs(self.level - level) > 1 or \
-           self.went_through_lvl_tel or \
-           self.fell_through_trap:
+           self.went_through_lvl_tel:
             self.graph.teleport(self.level, level)
             self.went_through_lvl_tel = False
-            self.fell_through_trap = False
         else:
             self.graph.move(self.level, level, from_pos, to_pos)
 

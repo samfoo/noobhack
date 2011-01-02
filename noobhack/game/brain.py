@@ -119,6 +119,12 @@ class Brain:
                 self.dlvl = dlvl
                 dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
 
+    def _dispatch_level_teleport_event(self, data):
+        for message in dungeon.messages["level-teleport"]:
+            match = re.search(message, data)
+            if match is not None:
+                dispatcher.dispatch("level-teleport")
+
     def _dispatch_trap_door_event(self, data):
         for message in dungeon.messages["trap-door"]:
             match = re.search(message, data)
