@@ -20,6 +20,7 @@ messages = {
     "level-teleport": set((
         "You rise up, through the ceiling!",
         "You dig a hole through the floor.  You fall through...",
+        "You activated a magic portal!",
     )),
 }
 

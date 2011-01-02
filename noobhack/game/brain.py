@@ -107,7 +107,7 @@ class Brain:
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
-        match = re.search("Dlvl:(-?\\d+)", line)
+        match = re.search("Dlvl:(\\d+)", line)
         if match is not None:
             dlvl = int(match.groups()[0])
             if dlvl != self.dlvl:
@@ -118,6 +118,29 @@ class Brain:
 
                 self.dlvl = dlvl
                 dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
+                return 
+
+        # Couldn't find the dlvl line... this means we're somewhere outside
+        # of the dungeon. Either in the end game, ft. ludios or in your quest.
+        match = re.search("Home (\\d+)", line)
+        if match is not None:
+            dlvl = int(match.groups()[0])
+            if dlvl != self.dlvl:
+                if dlvl < self.dlvl:
+                    self.last_move = "up"
+                elif dlvl > self.dlvl:
+                    self.last_move = "down"
+
+                self.dlvl = dlvl
+                dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
+                dispatcher.dispatch("branch-change", "quest")
+                return 
+
+        match = re.search("Fort Ludios", line)
+        if match is not None:
+            dispatcher.dispatch("level-change", self.dlvl + 1, self.prev_cursor, self.term.cursor())
+            dispatcher.dispatch("branch-change", "ludios")
+            return
 
     def _dispatch_level_teleport_event(self, data):
         for message in dungeon.messages["level-teleport"]:

@@ -234,6 +234,8 @@ class Map:
         self.columns["fire"] = (approx_width / 2) + 8 
         self.columns["water"] = (approx_width / 2) + (approx_width / 4)
         self.columns["astral"] = approx_width / 2
+        self.columns["quest"] = (approx_width / 2) + 20
+        self.columns["ludios"] = (approx_width / 2) - 20
 
         self._r_draw_branch(plane, self.dungeon.graph.first())
 
