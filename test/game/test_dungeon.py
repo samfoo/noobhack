@@ -1,7 +1,24 @@
 import unittest
 
-from noobhack.game.dungeon import Dungeon, Level, Map, looks_like_mines
+from noobhack.game.dungeon import Dungeon, Level, Map, looks_like_sokoban, looks_like_mines
 from noobhack.game.events import dispatcher
+
+class LooksLikeSokobanTest(unittest.TestCase):
+    def test_sokoban_a(self):
+        display = [
+            "-------- ------",
+            "|<|@..=---....|",
+            "|^|-.00....0..|",
+            "|^||..00|.0.0.|",
+            "|^||....|.....|",
+            "|^|------0----|",
+            "|^|    |......|",
+            "|^------......|",
+            "|..^^^^0000...|",
+            "|..-----......|",
+            "----   --------",
+        ]
+        self.assertTrue(looks_like_sokoban(display))
 
 class LooksLikeMinesTest(unittest.TestCase):
     def test_not_mines_even_with_headstone(self):
