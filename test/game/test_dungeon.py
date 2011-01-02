@@ -4,6 +4,18 @@ from noobhack.game.dungeon import Dungeon, Level, Map, looks_like_mines
 from noobhack.game.events import dispatcher
 
 class LooksLikeMinesTest(unittest.TestCase):
+    def test_not_mines_even_with_headstone(self):
+        display = [
+            "-----",
+            "|...-",
+            "|.|.|",
+            "|^..|",
+            "|.[<|",
+            "---.-",
+        ]
+
+        self.assertFalse(looks_like_mines(display))
+
     def test_not_mines_even_with_strip(self):
         display = [
             "--        ", 

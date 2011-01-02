@@ -15,6 +15,7 @@ messages = {
     "trap-door": set((
         "A trap door opens up under you!",
         "Air currents pull you down into a hole!",
+        "There's a gaping hole under you!",
     )),
     "level-teleport": set((
         "You rise up, through the ceiling!",
@@ -126,10 +127,6 @@ def looks_like_mines(display):
             break
         above, below = scanned[i], scanned[i+1]
         if mines(above, below):
-            return True
-
-    for row in display:
-        if row.strip().find("|.|") > -1:
             return True
 
     for column in ["".join(c).strip() for c in zip(*display)]:
