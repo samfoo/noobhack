@@ -250,6 +250,16 @@ class Map:
 
         return self.levels[1][0]
 
+    def branch_port(self, branch):
+        dlvl = self.current.dlvl
+        existing = [level for level in self.levels[dlvl] if level.branch == branch]
+
+        if len(existing) == 0:
+            self.current = Level(dlvl, branch)
+            self._add(dlvl, self.current)
+        else:
+            self.current = existing[0]
+
     def branch(self, branch):
         """
         Mark the current level as a branch.
@@ -285,6 +295,73 @@ class Map:
             new = Level(to_dlvl, self.current.branch)
             self._add(to_dlvl, new)
             self.current = new
+
+    def up(self, below_dlvl, above_dlvl, below_pos, above_pos):
+        if (above_pos, below_pos) in self.links.get((above_dlvl, below_dlvl), set()):
+            # Link exists... this is easy.
+            above, below = self.levels_for_link(above_dlvl,
+                                                above_pos,
+                                                below_dlvl,
+                                                below_pos)
+            self.current = above_dlvl
+        else:
+            new = Level(above_dlvl, self.current.branch)
+
+            # We might be on a branch which teleported us down and are
+            # traveling up from there.
+
+            if not self.is_orphan(self.current):
+                # There's already a link from our current level to some
+                # level above it. We're not using that link, so we must be
+                # going up to a different (new) level. I think this case
+                # only happens with sokoban.
+                self._add(to_dlvl, new)
+            else:
+                # Try to find any parents above me that are childless that
+                # I might be traveling to.
+                possibles = [l for l in self.levels.get(above, []) if len(self.children(l)) == 0 and l.branch == self.current.branch] 
+                if len(possibles) == 0:
+                    # There are no levels above me that could possibly be a
+                    # parent, so this must be going from one orphan to 
+                    # another and we're fine creating a new level.
+                    self._add(to_dlvl, new)
+                else: 
+                    # There was a level above me that could be my parent.
+                    # Hopefully only one, because we can't tell the
+                    # difference between them.
+                    new = possibles[0]
+
+            new.downs.add(above_pos)
+            self.current.ups.add(below_pos)
+            self.current = new
+
+    def down(self, below_dlvl, above_dlvl, below_pos, above_pos):
+        if (above_pos, below_pos) in self.links.get((above_dlvl, below_dlvl), set()):
+            # Link exists... this is easy.
+            above, below = self.levels_for_link(above_dlvl,
+                                                above_pos,
+                                                below_dlvl,
+                                                below_pos)
+            self.current = below_dlvl
+        else:
+            new = Level(below_dlvl, self.current.branch)
+
+            # Heading down is easy enough. Basically we always stay on the same
+            # branch when going down. 
+            if self.levels.has_key(below_dlvl):
+                # If we're heading down and there's already a dlvl that we've
+                # been to there, but we're not traversing down one of the links
+                # then we don't really know what branch it until the brain
+                # (hopefully) lets us know in the future.
+                new.branch = "unknown"
+
+            self.current.downs.add(above_pos)
+            new.ups.add(below_pos)
+            self._add(to_dlvl, new)
+            self.current = new
+            
+            # There's no link, so create it.
+            self._link(above, above_pos, below, below_pos)
 
     def move(self, from_dlvl, to_dlvl, from_pos, to_pos):
         """
@@ -471,6 +548,8 @@ class Dungeon:
                                       self._shop_type_handler)
         dispatcher.add_event_listener("level-teleport",
                                       self._level_teleport_handler)
+        dispatcher.add_event_listener("branch-port",
+                                      self._branch_port_handler)
         dispatcher.add_event_listener("trap-door", 
                                       self._level_teleport_handler)
         dispatcher.add_event_listener("move", self._bread_crumbs_handler)
@@ -491,6 +570,9 @@ class Dungeon:
 
     def _level_teleport_handler(self, _):
         self.went_through_lvl_tel = True 
+
+    def _branch_port_handler(self, _, branch):
+        self.graph.branch_port(branch)
 
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:

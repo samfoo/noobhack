@@ -125,21 +125,16 @@ class Brain:
         match = re.search("Home (\\d+)", line)
         if match is not None:
             dlvl = int(match.groups()[0])
-            if dlvl != self.dlvl:
-                if dlvl < self.dlvl:
-                    self.last_move = "up"
-                elif dlvl > self.dlvl:
-                    self.last_move = "down"
-
-                self.dlvl = dlvl
-                dispatcher.dispatch("level-change", dlvl, self.prev_cursor, self.term.cursor())
-                dispatcher.dispatch("branch-change", "quest")
-                return 
+            self.dlvl = dlvl + self.dlvl - 1
+            if dlvl == 1:
+                dispatcher.dispatch("branch-port", "quest")
+            else:
+                dispatcher.dispatch("level-change", self.dlvl, self.prev_cursor, self.term.cursor())
+            return 
 
         match = re.search("Fort Ludios", line)
         if match is not None:
-            dispatcher.dispatch("level-change", self.dlvl + 1, self.prev_cursor, self.term.cursor())
-            dispatcher.dispatch("branch-change", "ludios")
+            dispatcher.dispatch("branch-port", "ludios")
             return
 
     def _dispatch_level_teleport_event(self, data):

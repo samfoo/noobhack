@@ -236,6 +236,7 @@ class Map:
         self.columns["astral"] = approx_width / 2
         self.columns["quest"] = (approx_width / 2) + 20
         self.columns["ludios"] = (approx_width / 2) - 20
+        self.columns["unknown"] = (approx_width / 2) + 30
 
         self._r_draw_branch(plane, self.dungeon.graph.first())
 
