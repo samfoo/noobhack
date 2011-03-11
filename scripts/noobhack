@@ -258,11 +258,18 @@ class Noobhack:
         elif key == self.toggle_map:
             self.mode = "map"
             return False
+        elif key == "!":
+            self.mode = "debug"
+            return False
 
     def _game(self, window):
         """
         Run the game loop.
         """
+
+        if self.mode == "debug":
+            ui.Debug(self.player, self.dungeon).display(window)
+            self.mode = "game"
 
         if self.mode == "map":
             self.map.display(window, self.toggle_map)

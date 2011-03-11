@@ -506,6 +506,9 @@ class Level:
         self.dlvl = dlvl
         self.branch = branch 
 
+    def __str__(self):
+        return "dlvl:%s branch:%s ups:%s downs:%s" % (self.dlvl, self.branch, str(self.ups), str(self.downs))
+
     def short_codes(self):
         """
         Return the list of short codes (useful for displaying information about

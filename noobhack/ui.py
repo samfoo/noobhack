@@ -64,6 +64,39 @@ def size():
     raw = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
     return struct.unpack('hh', raw) 
 
+class Debug:
+    def __init__(self, player, dungeon):
+        self.player = player
+        self.dungeon = dungeon
+
+    def _draw_dungeon(self, window):
+        window.border("|", "|", "-", "-", "+", "+", "+", "+")
+        window.addstr(1, 1, "current: " + str(self.dungeon.graph.current))
+        window.addstr(2, 1, "links: " + str(self.dungeon.graph.links))
+
+        ordered_and_flattened = []
+        levels_we_know_about = sorted(self.dungeon.graph.levels.keys())
+        for tier in levels_we_know_about:
+            ordered_and_flattened += self.dungeon.graph.levels[tier]
+
+        for i, lvl in enumerate(ordered_and_flattened):
+            window.addstr(4+i, 1, str(lvl))
+
+    def display(self, window):
+        window.clear()
+
+        self._draw_dungeon(window)
+
+        while True:
+            window.refresh()
+
+            # Wait around until we get some input.
+            # TODO: I suspect in longer games pgup, pgdown are going to be 
+            # important. Implement them here.
+            key = sys.stdin.read(1)
+            if key == "!" or key == "\x1b":
+                break
+
 class Map:
     """
     Map is the graphical representation of the level graph. It draws the map on
