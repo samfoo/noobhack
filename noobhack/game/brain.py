@@ -199,4 +199,7 @@ class Brain:
         self._dispatch_shop_entered_event(data)
         self._dispatch_move_event()
 
-        self.prev_cursor = self.term.cursor()
+        
+        if "--More--" not in self.term.display[self.term.cursor()[1]]:
+            self.prev_cursor = self.term.cursor()
+
