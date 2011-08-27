@@ -9,7 +9,7 @@ setup(
     description="noobhack helps you ascend at nethack",
     long_description=open("readme.md", "r").read(),
     requires=["vt102 (>=0.3.2)"],
-    packages=["noobhack"],
-    scripts=["noobhack/noobhack"],
+    packages=["noobhack", "noobhack.game"],
+    scripts=["scripts/noobhack"],
     license="Lesser General Public License v3.0"
 )
