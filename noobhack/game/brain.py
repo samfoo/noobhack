@@ -14,14 +14,19 @@ class Brain:
     GrraaAAaaaAaaaa... braaaAAaaains...
     """
 
-    def __init__(self, term, output_proxy):
+    def __init__(self, term, output_proxy, input_proxy):
         self.term = term
         output_proxy.register(self.process)
+        input_proxy.register(self.monitor)
 
         self.last_move = None
         self.turn = 0
         self.dlvl = 0
         self.prev_cursor = (0, 0)
+        self.branchport_menu = {}
+        self.branchport_branch = None
+        self.in_branchport_menu = False
+        self.about_to_branchport = False
 
     def charisma(self):
         line = self._content()[-2]
@@ -94,16 +99,6 @@ class Brain:
             # If the player traveled up and arrived at a level that looks
             # like sokoban, she's definitely in sokoban.
             dispatcher.dispatch("branch-change", "sokoban")
-        elif self.dlvl == -1:
-            dispatcher.dispatch("branch-change", "earth")
-        elif self.dlvl == -2:
-            dispatcher.dispatch("branch-change", "air")
-        elif self.dlvl == -3:
-            dispatcher.dispatch("branch-change", "fire")
-        elif self.dlvl == -4:
-            dispatcher.dispatch("branch-change", "water")
-        elif self.dlvl == -5:
-            dispatcher.dispatch("branch-change", "astral")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
@@ -184,10 +179,43 @@ class Brain:
 
         return col
 
+    def _check_for_branchporting(self):
+        branches = {
+            "The Dungeons of Doom": "main",
+            "Gehennom": "main",
+            "The Gnomish Mines": "mines",
+            "The Quest": "quest",
+            "Sokoban": "sokoban",
+            "Fort Ludios": "ludios"
+        }
+
+        if "Open a portal to which dungeon?" in self.term.display[0]:
+            for line in self.term.display:
+                if "(end)" in line: break
+
+                match = re.search("([a-z]) - ((\\w+ ?)+)", line.strip())
+                if match is not None:
+                    key = match.groups()[0]
+                    full_name = match.groups()[1]
+                    self.branchport_menu[key] = branches[full_name]
+
+                self.in_branchport_menu = True
+        elif "You are surrounded by a shimmering sphere!" in self.term.display[0]:
+            self.about_to_branchport = True
+
+    def monitor(self, key):
+        if self.in_branchport_menu and \
+           key in self.branchport_menu.keys():
+            self.branchport_branch = self.branchport_menu[key]
+
     def process(self, data):
         """
         Callback attached to the output proxy.
         """
+
+        if self.about_to_branchport:
+            dispatcher.dispatch("branch-port", self.branchport_branch)
+        self.about_to_branchport = False
 
         self._dispatch_status_events(data)
         self._dispatch_resistance_events(data)
@@ -199,6 +227,7 @@ class Brain:
         self._dispatch_shop_entered_event(data)
         self._dispatch_move_event()
 
+        self._check_for_branchporting()
         
         if "--More--" not in self.term.display[self.term.cursor()[1]]:
             self.prev_cursor = self.term.cursor()

@@ -172,7 +172,7 @@ class Noobhack:
         self.player.listen()
         self.dungeon.listen()
 
-        self.brain = brain.Brain(self.term, self.output_proxy)
+        self.brain = brain.Brain(self.term, self.output_proxy, self.input_proxy)
         self.helper = ui.Helper(self.brain, self.player, self.dungeon)
         self.map = ui.Map(self.brain, self.player, self.dungeon)
 
