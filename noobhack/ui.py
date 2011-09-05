@@ -9,7 +9,7 @@ import sys
 import fcntl
 import curses 
 import struct
-mport locale
+import locale
 import termios
 
 from noobhack.game import status, shops
@@ -319,7 +319,7 @@ class Helper:
     `redraw` is called.
     """
 
-    intrinsic_width = 12
+    intrinsic_width = 25
     status_width = 12
     level_width = 25 
 

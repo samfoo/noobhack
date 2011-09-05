@@ -1,65 +1,81 @@
-# TODO: Look up other resistances 
 messages = {
-    "warning": set((
-        "You feel sensitive!"
-      )),
-    "shock resistance": set((
-        "Your health currently feels amplified!",
-        "You feel insulated!",
-        "You are shock resistant",
-        "You feel grounded in reality."
-    )),
-    "fire resistance": set((
-        "You be chillin'.",
-        "You are fire resistant",
-        "You feel a momentary chill."
-    )),
-    "cold resistance": set((
-        "You are cold resistant",
-        "You feel warm!",
-        "You feel full of hot air."
-    )),
-    "disintegration resistance": set((
-        "You are disintegration-resistant",
-        "You feel very firm.",
-        "You feel totally together, man."
-    )),
-    "poison resistance": set((
-        "You are poison resistant",
-        "You feel( especially)? (healthy)|(hardy)"
-    )),
-    "sleep resistance": set((
-        "You are sleep resistant",
-        "You feel( wide)? awake"
-    )),
-    "Aggravate monster": set((
-        "You feel that monsters are aware of your presence"
-    )),
-    "Invisible": set((
-        "You feel hidden!"
-    )),
-    "See invisible": set((
-        "You see an image of someone stalking you.",
-        "You feel transparent",
-        "You feel very self-conscious", 
-        "Your vision becomes clear"
-    )),
-    "Searching": set((
-        "You feel perceptive!"
-    )),
-    "Speed": set((
-        "You feel quick!"
-    )),
-  "Teleportitis": set((
-     "You feel very jumpy",
-  "You feel diffuse"
-  )),
-  "Teleport control": set((
-  "You feel in control of yourself",
-  "You feel centered in your personal space"
-  )),
-  "Telepathy": set((
-  "You feel in touch with the cosmos",
-  "You feel a strange mental acuity"
-  ))
+    "Warning": {
+        "You feel sensitive!":True,
+        "You feel less sensitive!":False,
+     },
+    "Shock resistance": {
+        "Your health currently feels amplified!":True,
+        "You feel insulated!":True,
+        "You are shock resistant":True,
+        "You feel grounded in reality.":True,
+        "You feel conductive":False
+    },
+    "Fire resistance": {
+        "You be chillin'.":True,
+        "You feel cool!":True,
+        "You are fire resistant":True,
+        "You feel a momentary chill.":True,
+        "You feel warmer!":False
+    },
+    "Cold resistance": {
+        "You are cold resistant":True,
+        "You feel warm!":True,
+        "You feel full of hot air.":True,
+        "You feel cooler!":False
+    },
+    "Disintegration resist.": {
+        "You are disintegration-resistant":True,
+        "You feel very firm.":True,
+        "You feel totally together, man.":True        
+    },
+    "Poison resistance": {
+        "You are poison resistant":True,
+        "You feel( especially)? (healthy)|(hardy)":True,
+        "You feel a little sick!":False
+    },
+    "Sleep resistance": {
+        "You are sleep resistant":True,
+        "You feel( wide)? awake":True,
+        "You feel tired!":False
+    },
+    "Aggravate monster": {
+        "You feel that monsters are aware of your presence":True,
+        "You feel less attractive":False
+    },
+    "Protection": {
+        "You feel vulnerable":False
+    },
+    "Invisible": {
+        "You feel hidden!":True
+    },
+    "See invisible": {
+        "You see an image of someone stalking you.":True,
+        "You feel transparent":True,
+        "You feel very self-conscious":True, 
+        "Your vision becomes clear":True
+    },
+    "Searching": {
+        "You feel perceptive!":True
+    },
+    "Speed": {
+        "You feel quick!":True,
+        "You feel yourself speed up.":True, # speed boots put on (want this here?)!
+        "You feel yourself slow down.":False, # speed boots removed (want this here?)!
+        "You feel slow!":False
+    },
+    "Teleportitis": {
+       "You feel very jumpy":True,
+       "You feel diffuse":True,
+       "You feel less jumpy":False
+    },
+    "Teleport control": {
+        "You feel in control of yourself":True,
+        "You feel controlled!":True,
+        "You feel centered in your personal space":True,
+       "You feel less jumpy":False
+    },
+    "Telepathy": {
+        "You feel in touch with the cosmos":True,
+        "You feel a strange mental acuity":True
+    }
 }

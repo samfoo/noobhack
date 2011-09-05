@@ -55,10 +55,10 @@ class Brain:
 
     def _dispatch_intrinsic_events(self, data):
         for name, messages in intrinsics.messages.iteritems():
-            for message in messages:
+            for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    dispatcher.dispatch("intrinsic", name)
+                    dispatcher.dispatch("intrinsic", name, value)
 
     def _dispatch_status_events(self, data):
         """
