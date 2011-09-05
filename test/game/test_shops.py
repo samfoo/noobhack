@@ -45,7 +45,7 @@ class BuyIdentifyTest(unittest.TestCase):
 
     def test_random_markup(self):
         self.assertEqual(
-            set([("death", 666, 5, None), ("wishing", 666, 5, None)]),
+            set([("death", 667, 5, None), ("wishing", 667, 5, None)]),
             buy_identify(11, "wand", 666)
         )
 
@@ -61,7 +61,7 @@ class BuyIdentifyTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            set([("death", 666, 5, None), ("wishing", 666, 5, None)]),
+            set([("death", 667, 5, None), ("wishing", 667, 5, None)]),
             buy_identify(8, "wand", 666)
         )
 
@@ -76,7 +76,7 @@ class BuyIdentifyTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            set([("death", 334, 5, None), ("wishing", 334, 5, None)]),
+            set([("death", 333, 5, None), ("wishing", 333, 5, None)]),
             buy_identify(18, "wand", 334)
         )
 
