@@ -1,4 +1,3 @@
-
 import unittest 
 
 from noobhack.game.shops import *
@@ -12,7 +11,8 @@ class SellIdentifyTest(unittest.TestCase):
 
     def test_appearance_identify(self):
         self.assertEqual(
-            set([("orcish dagger", 2, 12, "crude dagger")]),
+            # the shop functions return both(all) the possible prices. Updated test to match
+            set([("orcish dagger", 2, 12, "crude dagger"), ("orcish dagger", 1, 12, "crude dagger")]),            
             sell_identify("crude dagger", 2)
         )
 
@@ -25,19 +25,21 @@ class SellIdentifyTest(unittest.TestCase):
 class BuyIdentifyTest(unittest.TestCase):
     def test_sucker_penalty(self):
         self.assertEqual(
-            set([("orcish dagger", 6, 12, "crude dagger")]),
+            set([("orcish dagger", 5, 12, "crude dagger"), ("orcish dagger", 7, 12, "crude dagger")]),
             buy_identify(11, "crude dagger", 6, True)
         )
 
     def test_appearance_identify(self):
         self.assertEqual(
-            set([("orcish dagger", 4, 12, "crude dagger")]),
+            # the shop functions return both(all) the possible prices. Updated test to match
+            set([("orcish dagger", 5, 12, "crude dagger"), ("orcish dagger", 4, 12, "crude dagger")]),
             buy_identify(11, "crude dagger", 4)
         )
 
     def test_appearch_id_with_random_markup(self):
         self.assertEqual(
-            set([("orcish dagger", 5, 12, "crude dagger")]),
+            # the shop functions return both(all) the possible prices. Updated test to match
+            set([("orcish dagger", 5, 12, "crude dagger"), ("orcish dagger", 4, 12, "crude dagger")]),
             buy_identify(11, "crude dagger", 5)
         )
 
