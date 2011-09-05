@@ -6,7 +6,7 @@ consuming and processing those events in an intelligent way.
 import re
 
 from noobhack.game.graphics import ibm
-from noobhack.game import shops, status, resistances, sounds, dungeon
+from noobhack.game import shops, status, intrinsics, sounds, dungeon
 from noobhack.game.events import dispatcher
 
 class Brain:
@@ -53,12 +53,12 @@ class Brain:
                 if match is not None:
                     dispatcher.dispatch("level-feature", feature)
 
-    def _dispatch_resistance_events(self, data):
-        for name, messages in resistances.messages.iteritems():
+    def _dispatch_intrinsic_events(self, data):
+        for name, messages in intrinsics.messages.iteritems():
             for message in messages:
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    dispatcher.dispatch("resistance", name)
+                    dispatcher.dispatch("intrinsic", name)
 
     def _dispatch_status_events(self, data):
         """
@@ -218,7 +218,7 @@ class Brain:
         self.about_to_branchport = False
 
         self._dispatch_status_events(data)
-        self._dispatch_resistance_events(data)
+        self._dispatch_intrinsic_events(data)
         self._dispatch_turn_change_event()
         self._dispatch_trap_door_event(data)
         self._dispatch_level_change_event()

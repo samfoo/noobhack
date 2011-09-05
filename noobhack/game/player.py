@@ -9,14 +9,14 @@ class Player:
 
     def __init__(self):
         self.status = set() 
-        self.resistances = set()
+        self.intrinsics = set()
 
     def listen(self):
         events.dispatcher.add_event_listener("status", self._status_handler)
-        events.dispatcher.add_event_listener("resistance", self._resistance_handler)
+        events.dispatcher.add_event_listener("intrinsic", self._intrinsic_handler)
 
-    def _resistance_handler(self, event, name):
-        self.resistances.add(name)
+    def _intrinsic_handler(self, event, name):
+        self.intrinsics.add(name)
 
     def _status_handler(self, event, name, value):
         if name in self.status and value == False:

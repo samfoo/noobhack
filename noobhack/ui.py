@@ -9,7 +9,7 @@ import sys
 import fcntl
 import curses 
 import struct
-import locale
+mport locale
 import termios
 
 from noobhack.game import status, shops
@@ -319,7 +319,7 @@ class Helper:
     `redraw` is called.
     """
 
-    resistance_width = 12
+    intrinsic_width = 12
     status_width = 12
     level_width = 25 
 
@@ -354,7 +354,7 @@ class Helper:
         return 1 + max(1, max(
             len(level.features) + len(level.shops),
             len(self._get_statuses()),
-            len(self.player.resistances),
+            len(self.player.intrinsics),
         ))
 
     def _top(self):
@@ -410,15 +410,15 @@ class Helper:
 
         return dungeon_frame
 
-    def _resistance_box(self):
+    def _intrinsic_box(self):
         """
-        Create the pane with information with the player's current resistances.
+        Create the pane with information with the player's current intrinsics.
         """
 
         default = "(none)"
 
         def res_color(res):
-            """Return the color of a resistance."""
+            """Return the color of a intrinsic."""
             if res == "fire": 
                 return curses.COLOR_RED
             elif res == "cold": 
@@ -432,23 +432,23 @@ class Helper:
 
         res_frame = curses.newwin(
             self._height(), 
-            self.resistance_width, 
+            self.intrinsic_width, 
             self._top(), 
             self.level_width + self.status_width - 2
         )
 
         res_frame.erase()
         res_frame.border("|", "|", "-", " ", "+", "+", "|", "|")
-        res_frame.addstr(0, 2, " resist ")
-        res_frame.chgat(0, 2, len(" resist "), get_color(curses.COLOR_CYAN))
-        resistances = sorted(self.player.resistances)
-        for row, res in enumerate(resistances, 1):
+        res_frame.addstr(0, 2, " intrinsic ")
+        res_frame.chgat(0, 2, len(" intrinsic "), get_color(curses.COLOR_CYAN))
+        intrinsics = sorted(self.player.intrinsics)
+        for row, res in enumerate(intrinsics, 1):
             color = get_color(res_color(res))
-            res_frame.addnstr(row, 1, res, self.resistance_width-2)
-            res_frame.chgat(row, 1, min(len(res), self.resistance_width-2), color)
+            res_frame.addnstr(row, 1, res, self.intrinsic_width-2)
+            res_frame.chgat(row, 1, min(len(res), self.intrinsic_width-2), color)
 
-        if len(resistances) == 0:
-            center = (self.resistance_width / 2) - (len(default) / 2)
+        if len(intrinsics) == 0:
+            center = (self.intrinsic_width / 2) - (len(default) / 2)
             res_frame.addstr(1, center, default)
 
         return res_frame
@@ -583,11 +583,11 @@ class Helper:
 
         status_frame = self._status_box()
         dungeon_frame = self._level_box()
-        resist_frame = self._resistance_box()
+        intrinsic_frame = self._intrinsic_box()
 
         status_frame.overwrite(window)
         dungeon_frame.overwrite(window)
-        resist_frame.overwrite(window)
+        intrinsic_frame.overwrite(window)
 
         window.noutrefresh()
 
