@@ -6,8 +6,10 @@ class Level(object):
 
     def change_branch_to(self, branch):
         self.branch = branch
-        for child in [c for c in self.stairs.values() if c.dlvl > self.dlvl]:
-            child.change_branch_to(branch)
+        if self.branch != "sokoban":
+            links = self.stairs.values()
+            for child in [c for c in links if c.dlvl > self.dlvl]:
+                child.change_branch_to(branch)
 
     def add_stairs(self, level, position):
         self.stairs[position] = level
@@ -46,6 +48,33 @@ class Map:
     def is_there_a_level_at(self, branch, dlvl):
         return self.level_at(branch, dlvl) is not None
 
+    def _link(self, new_level, pos):
+        self.current.add_stairs(new_level, self.location)
+        new_level.add_stairs(self.current, pos)
+
+    def _add(self, new_level, pos):
+        self.levels.add(new_level)
+        self._link(new_level, pos)
+
+    def _handle_existing_level(self, to_dlvl, to_pos):
+        has_stairs_to_other_lower = [l for l 
+                                     in self.current.stairs.values() 
+                                     if l.dlvl == to_dlvl]
+
+        if len(has_stairs_to_other_lower) > 0:
+            # If the existing level has stairs to it, and we're at a different
+            # location than those stairs then the stairs at our current 
+            # location *must* be a different level.
+            new_level = Level(to_dlvl, "not sure")
+            self._add(new_level, to_pos)
+            self.current = new_level
+        else:
+            # Otherwise, if there are no stairs to the lower level, we just
+            # assume that the stairs we're presently at lead to it.
+            existing_level = self.level_at(self.current.branch, to_dlvl)
+            self._link(existing_level, to_pos)
+            self.current = existing_level
+
     def travel_by_stairs(self, to_dlvl, to_pos):
         if self.current.has_stairs_at(self.location):
             # If the current level already has stairs at our current position,
@@ -56,18 +85,13 @@ class Map:
             # traveling to, but there's no current stairs link, it means that
             # we just haven't traveled by stairs between those levels. Adding
             # the link is all that's necessary.
-            existing_level = self.level_at(self.current.branch, to_dlvl)
-            self.current.add_stairs(existing_level, self.location)
-            existing_level.add_stairs(self.current, to_pos)
-            self.current = existing_level
+            self._handle_existing_level(to_dlvl, to_pos)
         else:
             # If the current level doesn't have stairs at our current position,
             # create a new level and attach them.
             new_level = Level(to_dlvl, self.current.branch)
-            self.current.add_stairs(new_level, self.location)
-            new_level.add_stairs(self.current, to_pos)
+            self._add(new_level, to_pos)
             self.current = new_level
-            self.levels.add(new_level)
 
         self.location = to_pos
 
