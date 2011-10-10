@@ -20,6 +20,11 @@ class Level(object):
     def has_stairs_at(self, pos):
         return self.stairs_at(pos) != None
 
+    def is_a_junction(self):
+        below = [l for l in self.stairs.values() if l.dlvl > self.dlvl]
+        above = [l for l in self.stairs.values() if l.dlvl < self.dlvl]
+        return len(below) > 1 or len(above) > 1
+
     def __repr__(self):
         return repr([self.dlvl, self.branch, self.stairs])
 
