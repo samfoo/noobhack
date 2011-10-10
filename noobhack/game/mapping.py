@@ -1,8 +1,39 @@
 class Level(object):
+    """
+    A single dungeon level. This can be thought of as "mines, level 3", or 
+    "main, level 5". There can be multiple levels of the same dlvl, but
+    they should generally be in different branches. Dungeons have stairs to
+    other levels.
+
+    Levels also are responsible for keeping track of various interesting things
+    about themselves. What features they contain, breadcrumbs of what squares
+    have been stepped on, etc.
+    """
+
+    codemap = {
+        "oracle": "o",
+        "rogue": "r",
+        "altar (chaotic)": "ac",
+        "altar (neutral)": "an",
+        "altar (lawful)": "al",
+        "angry watch": "w",
+        "zoo": "z",
+        "barracks": "b",
+        "shop": "s",
+        "vault": "v",
+        "beehive": "h",
+        "chest": "c",
+    }
+
     def __init__(self, dlvl, branch="main"):
         self.dlvl = dlvl
         self.branch = branch 
         self.stairs = {}
+
+        # Level features
+        self.breadcrumbs = set()
+        self.features = set()
+        self.shops = set()
 
     def change_branch_to(self, branch):
         self.branch = branch
@@ -25,6 +56,10 @@ class Level(object):
         above = [l for l in self.stairs.values() if l.dlvl < self.dlvl]
         return len(below) > 1 or len(above) > 1
 
+    def short_codes(self):
+        codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
+        return sorted(codes)
+
     def __repr__(self):
         return repr([self.dlvl, self.branch, self.stairs])
 
@@ -36,6 +71,7 @@ class Map:
 
     def move(self, x, y):
         self.location = (x, y)
+        self.current.breadcrumbs.add((x, y))
 
     def level_at(self, branch, dlvl):
         maybe_level = [l for l 
