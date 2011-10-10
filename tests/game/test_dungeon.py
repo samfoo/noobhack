@@ -18,6 +18,25 @@ def test_sokoban_a():
 
     assert looks_like_sokoban(display)
 
+def test_sokoban_b():
+    display = [
+        "------  ----- ",
+        "|....|  |...| ",
+        "|.0..----.0.| ",
+        "|.0......0..| ",
+        "|..--->---0.| ",
+        "|---------.---",
+        "|..^^^<|.....|",
+        "|..----|0....|",
+        "--^|   |.0...|",
+        " |^-----.0...|",
+        " |..^^^^0.0..|",
+        " |??----------",
+        " ---- ",
+    ]
+
+    assert looks_like_sokoban(display)
+
 def test_not_mines_even_with_headstone():
     display = [
         "-----",
