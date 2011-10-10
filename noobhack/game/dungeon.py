@@ -139,58 +139,58 @@ def looks_like_mines(display):
 
     return False
 
-class Level:
-    """
-    A level is a single dungeon level. This can be thought of as "mines, level 
-    3", or "main, level 5". There can be multiple levels of the same dlvl, but
-    they must be on different branches.
-    """
-    codemap = {
-        "oracle": "o",
-        "rogue": "r",
-        "altar (chaotic)": "ac",
-        "altar (neutral)": "an",
-        "altar (lawful)": "al",
-        "angry watch": "w",
-        "zoo": "z",
-        "barracks": "b",
-        "shop": "s",
-        "vault": "v",
-        "beehive": "h",
-        "chest": "c",
-    }
-
-    def __init__(self, dlvl, branch="main"):
-        self.features = set()
-        self.shops = set()
-        self.ups = set()
-        self.downs = set()
-        self.breadcrumbs = set()
-        self.dlvl = dlvl
-        self.branch = branch 
-
-    def __str__(self):
-        return "dlvl:%s branch:%s ups:%s downs:%s" % (self.dlvl, self.branch, str(self.ups), str(self.downs))
-
-    def short_codes(self):
-        """
-        Return the list of short codes (useful for displaying information about
-        a level when space is limited).
-        """
-
-        codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
-        return sorted(codes)
-
-    def __eq__(self, other):
-        if other is None or other.__class__ is not Level:
-            return False
-
-        return self.dlvl == other.dlvl and \
-                self.features == other.features and \
-                self.ups == other.ups and \
-                self.downs == other.downs and \
-                self.branch == other.branch
-
+#class Level:
+#    """
+#    A level is a single dungeon level. This can be thought of as "mines, level 
+#    3", or "main, level 5". There can be multiple levels of the same dlvl, but
+#    they must be on different branches.
+#    """
+#    codemap = {
+#        "oracle": "o",
+#        "rogue": "r",
+#        "altar (chaotic)": "ac",
+#        "altar (neutral)": "an",
+#        "altar (lawful)": "al",
+#        "angry watch": "w",
+#        "zoo": "z",
+#        "barracks": "b",
+#        "shop": "s",
+#        "vault": "v",
+#        "beehive": "h",
+#        "chest": "c",
+#    }
+#
+#    def __init__(self, dlvl, branch="main"):
+#        self.features = set()
+#        self.shops = set()
+#        self.ups = set()
+#        self.downs = set()
+#        self.breadcrumbs = set()
+#        self.dlvl = dlvl
+#        self.branch = branch 
+#
+#    def __str__(self):
+#        return "dlvl:%s branch:%s ups:%s downs:%s" % (self.dlvl, self.branch, str(self.ups), str(self.downs))
+#
+#    def short_codes(self):
+#        """
+#        Return the list of short codes (useful for displaying information about
+#        a level when space is limited).
+#        """
+#
+#        codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
+#        return sorted(codes)
+#
+#    def __eq__(self, other):
+#        if other is None or other.__class__ is not Level:
+#            return False
+#
+#        return self.dlvl == other.dlvl and \
+#                self.features == other.features and \
+#                self.ups == other.ups and \
+#                self.downs == other.downs and \
+#                self.branch == other.branch
+#
 class Dungeon:
     """
     The dungeon keeps track of various dungeon states that are helpful to know.
@@ -199,7 +199,7 @@ class Dungeon:
     """
 
     def __init__(self):
-        self.graph = Map()
+        self.graph = Map(Level(1), 0, 0)
         self.level = 1
         self.went_through_lvl_tel = False
 
@@ -225,7 +225,9 @@ class Dungeon:
         self.graph.move(*cursor)
 
     def _bread_crumbs_handler(self, _, cursor):
-        self.current_level().breadcrumbs.add(cursor)
+        # TODO: Implement
+        #self.current_level().breadcrumbs.add(cursor)
+        pass
 
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
@@ -244,6 +246,7 @@ class Dungeon:
     def _branch_port_handler(self, _, branch):
         # TODO: Implement
         #self.graph.branch_port(branch)
+        pass
 
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:
