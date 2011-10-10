@@ -65,6 +65,9 @@ class Map:
             # If the existing level has stairs to it, and we're at a different
             # location than those stairs then the stairs at our current 
             # location *must* be a different level.
+            other_level = has_stairs_to_other_lower[0]
+            other_level.change_branch_to("not sure")
+
             new_level = Level(to_dlvl, "not sure")
             self._add(new_level, to_pos)
             self.current = new_level

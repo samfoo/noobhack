@@ -146,6 +146,8 @@ def test_that_when_there_are_two_levels_on_seemingly_the_same_branch_both_levels
     first.should_receive("add_stairs").with_args(mines_second, (5, 5)).once
 
     m.move(5, 5)
+    main_branch_second.should_receive("change_branch_to").with_args("not sure").once
     m.travel_by_stairs(2, (5, 5))
 
     assert len(m.levels) == 3
+
