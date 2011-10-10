@@ -91,8 +91,6 @@ class Debug:
             window.refresh()
 
             # Wait around until we get some input.
-            # TODO: I suspect in longer games pgup, pgdown are going to be 
-            # important. Implement them here.
             key = sys.stdin.read(1)
             if key == "!" or key == "\x1b":
                 break
@@ -303,13 +301,17 @@ class Map:
             curses.doupdate()
 
             # Wait around until we get some input.
-            # TODO: I suspect in longer games pgup, pgdown are going to be 
-            # important. Implement them here.
+            # In longer games pgup, pgdown are going to be 
+            # important. 
             key = sys.stdin.read(1)
             if key == "k":
                 scroll_y = max(scroll_y - 1, 0) 
             elif key == "j":
                 scroll_y = min(scroll_y + 1, approx_height - size()[0])
+            elif key == "K":
+                scroll_y = max(scroll_y - 10, 0) 
+            elif key == "J":
+                scroll_y = min(scroll_y + 10, approx_height - size()[0])
             elif key == close or key == "\x1b":
                 break
 
