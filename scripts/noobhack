@@ -11,9 +11,14 @@ import optparse
 import cPickle as pickle
 
 import vt102 
-
-from noobhack import ui, telnet, process, proxy
+ 
+from noobhack import telnet, process, proxy
 from noobhack.game import player, dungeon, brain
+
+from noobhack.ui.game import *
+from noobhack.ui.helper import *
+from noobhack.ui.map import *
+from noobhack.ui.common import *
 
 def get_parser():
     parser = optparse.OptionParser(
@@ -136,12 +141,12 @@ class Noobhack:
         # terminal. It seems easiest just to subtract one from the rows and 
         # deal with it rather than hunt forever trying to figure out what I'm
         # doing wrong with curses.
-        rows, cols = ui.size()
+        rows, cols = size()
         self.term = vt102.screen((rows-1, cols), self.options.encoding)
         self.term.attach(self.stream)
         self.output_proxy.register(self.stream.process)
 
-        self.game = ui.Game(self.term)
+        self.game = Game(self.term)
 
         self.output_proxy.register(self._restore_game_checker)
         self.output_proxy.register(self._game_started_checker)
@@ -173,8 +178,8 @@ class Noobhack:
         self.dungeon.listen()
 
         self.brain = brain.Brain(self.term, self.output_proxy, self.input_proxy)
-        self.helper = ui.Helper(self.brain, self.player, self.dungeon)
-        self.map = ui.Map(self.brain, self.player, self.dungeon)
+        self.helper = Helper(self.brain, self.player, self.dungeon)
+        self.map = Map(self.brain, self.player, self.dungeon)
 
     def _game_started_checker(self, data):
         """
@@ -266,10 +271,6 @@ class Noobhack:
         """
         Run the game loop.
         """
-
-        if self.mode == "debug":
-            ui.Debug(self.player, self.dungeon).display(window)
-            self.mode = "game"
 
         if self.mode == "map":
             self.map.display(window, self.toggle_map)

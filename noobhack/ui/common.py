@@ -1,3 +1,11 @@
+import re
+import sys
+import fcntl
+import curses 
+import struct
+import locale
+import termios
+
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
 # which is the only difference between curses and linux console colors. Turns
 # out that it just renders as yellow (at least in OSX Terminal.app) anyway.
