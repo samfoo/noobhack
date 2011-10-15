@@ -10,21 +10,6 @@ class Level(object):
     have been stepped on, etc.
     """
 
-    codemap = {
-        "oracle": "o",
-        "rogue": "r",
-        "altar (chaotic)": "ac",
-        "altar (neutral)": "an",
-        "altar (lawful)": "al",
-        "angry watch": "w",
-        "zoo": "z",
-        "barracks": "b",
-        "shop": "s",
-        "vault": "v",
-        "beehive": "h",
-        "chest": "c",
-    }
-
     def __init__(self, dlvl, branch="main"):
         self.dlvl = dlvl
         self.branch = branch 

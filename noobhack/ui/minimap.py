@@ -10,10 +10,21 @@ from noobhack.ui.common import *
 
 class Minimap:
     def __init__(self):
-        self.dungeon = None 
+        self.dungeon = None
+
+    def shop_text_as_buffer(self, shops):
+        if len(shops) > 0:
+            return ["  Shops:"] + ["    * %s" % s for s in shops]
+        else:
+            return []
+
+    def feature_text_as_buffer(self, features):
+        return ["  * %s" % f for f in sorted(features)]
 
     def level_text_as_buffer(self, level):
-        pass
+        buf = self.shop_text_as_buffer(level.shops) + \
+              self.feature_text_as_buffer(level.features)
+        return ["Level %s:" % level.dlvl] + (buf or ["  (nothing interesting)"])
 
     def _draw_level(self, window, y, x, level, current=False):
         """
