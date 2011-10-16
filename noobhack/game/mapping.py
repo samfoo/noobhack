@@ -1,3 +1,27 @@
+class Branch:
+    def __init__(self, start):
+        self.current = self.start = start
+
+    def __iter__(self):
+        return Branch(self.start)
+
+    def next(self):
+        # Go down the stairs (if they exist) to the next level below this one
+        # on the same branch.
+        if self.current == None:
+            raise StopIteration
+        else:
+            current = self.current
+            potential_nexts = [l for l 
+                               in current.stairs.values() 
+                               if l.branch == current.branch]
+            if len(potential_nexts) > 0:
+                self.current = potential_nexts[0]
+            else:
+                self.current = None
+
+            return current
+
 class Level(object):
     """
     A single dungeon level. This can be thought of as "mines, level 3", or 
@@ -40,10 +64,6 @@ class Level(object):
         below = [l for l in self.stairs.values() if l.dlvl > self.dlvl]
         above = [l for l in self.stairs.values() if l.dlvl < self.dlvl]
         return len(below) > 1 or len(above) > 1
-
-    def short_codes(self):
-        codes = [self.codemap[f] for f in self.features if self.codemap.has_key(f)]
-        return sorted(codes)
 
     def __repr__(self):
         return repr([self.dlvl, self.branch, self.stairs])

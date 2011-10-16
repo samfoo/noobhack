@@ -9,6 +9,10 @@ import termios
 from noobhack.ui.common import *
 
 class Minimap:
+    branch_display_names = {
+        "main": "Dungeons of Doom",
+    }
+
     def __init__(self):
         self.dungeon = None
 
@@ -25,6 +29,52 @@ class Minimap:
         buf = self.shop_text_as_buffer(level.shops) + \
               self.feature_text_as_buffer(level.features)
         return ["Level %s:" % level.dlvl] + (buf or ["  (nothing interesting)"])
+
+    def line_to_display(self, text, width, border="|", padding=" "):
+        if len(text) > (width + len(border) * 2  + len(padding) * 2):
+            # If the text is too long to fit in the width, then trim it.
+            text = text[:(width + len(border) * 2 + 2)]
+        return "%s%s%s%s%s" % (
+            border, padding, 
+            text + padding * (width - len(text) - len(border) * 2 - len(padding) * 2), 
+            padding, border
+        )
+
+    def layout_level_text_buffers(self, levels):
+        def to_buffer((last_dlvl, result), level):
+            if level.dlvl > (last_dlvl + 1):
+                return (
+                    level.dlvl,
+                    result + ["...", ""] + self.level_text_as_buffer(level) + [""], 
+                )
+            else: 
+                return (
+                    level.dlvl,
+                    result + self.level_text_as_buffer(level) + [""],
+                )
+
+        return reduce(to_buffer, levels, (0, []))[1]
+
+    def header_as_buffer(self, text, width):
+        return [
+            self.line_to_display("-" * (width - 2), width, ".", ""),
+            self.line_to_display(text, width),
+            self.line_to_display("=" * (width - 2), width, padding=""),
+        ]
+
+    def footer_as_buffer(self, width):
+        return [self.line_to_display("...", width, "'")]
+
+
+    def unconnected_branch_as_buffer(self, display_name, branch):
+        level_texts = self.layout_level_text_buffers(branch)
+        max_level_text_width = len(max(level_texts, key=len))
+
+        # The '4' comes from two spaces of padding and two border pipes.
+        width = 4 + max(len(display_name), max_level_text_width)
+        return self.header_as_buffer(display_name, width) + \
+                [self.line_to_display(t, width) for t in level_texts] + \
+                self.footer_as_buffer(width)
 
     def _draw_level(self, window, y, x, level, current=False):
         """
