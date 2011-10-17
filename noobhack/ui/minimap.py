@@ -41,19 +41,24 @@ class Minimap:
         )
 
     def layout_level_text_buffers(self, levels):
-        def to_buffer((last_dlvl, result), level):
-            if level.dlvl > (last_dlvl + 1):
-                return (
-                    level.dlvl,
-                    result + ["...", ""] + self.level_text_as_buffer(level) + [""], 
-                )
-            else: 
-                return (
-                    level.dlvl,
-                    result + self.level_text_as_buffer(level) + [""],
-                )
+        result = []
+        last_level = None
+        indices = {}
+        for level in levels:
+            if last_level is not None and level.dlvl > (last_level.dlvl + 1):
+                level_display_buffer = ["...", ""] + \
+                                       self.level_text_as_buffer(level) + \
+                                       [""]
+                indices[level.dlvl] = len(result) + 2
+                result += level_display_buffer
+            else:
+                level_display_buffer = self.level_text_as_buffer(level) + [""]
+                indices[level.dlvl] = len(result)
+                result += level_display_buffer
 
-        return reduce(to_buffer, levels, (0, []))[1]
+            last_level = level
+
+        return indices, result 
 
     def header_as_buffer(self, text, width):
         return [
@@ -66,15 +71,23 @@ class Minimap:
         return [self.line_to_display("...", width, "'")]
 
 
-    def unconnected_branch_as_buffer(self, display_name, branch):
-        level_texts = self.layout_level_text_buffers(branch)
+    def unconnected_branch_as_buffer_with_indices(self, display_name, branch):
+        indices, level_texts = self.layout_level_text_buffers(branch)
         max_level_text_width = len(max(level_texts, key=len))
 
         # The '4' comes from two spaces of padding and two border pipes.
         width = 4 + max(len(display_name), max_level_text_width)
-        return self.header_as_buffer(display_name, width) + \
-                [self.line_to_display(t, width) for t in level_texts] + \
-                self.footer_as_buffer(width)
+
+        header = self.header_as_buffer(display_name, width)
+        body = [self.line_to_display(t, width) for t in level_texts]
+        footer = self.footer_as_buffer(width)
+
+        # Adjust the indices to account for the header
+        indices = dict([(dlvl, index + len(header)) 
+                       for dlvl, index 
+                       in indices.iteritems()])
+
+        return (indices, header + body + footer) 
 
     def _draw_level(self, window, y, x, level, current=False):
         """
