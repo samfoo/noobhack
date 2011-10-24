@@ -5,6 +5,9 @@ class Branch:
     def __iter__(self):
         return Branch(self.start)
 
+    def __len__(self):
+        return len([l for l in self])
+
     def next(self):
         # Go down the stairs (if they exist) to the next level below this one
         # on the same branch.

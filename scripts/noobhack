@@ -17,7 +17,7 @@ from noobhack.game import player, dungeon, brain
 
 from noobhack.ui.game import *
 from noobhack.ui.helper import *
-from noobhack.ui.map import *
+from noobhack.ui.minimap import *
 from noobhack.ui.common import *
 
 def get_parser():
@@ -179,7 +179,7 @@ class Noobhack:
 
         self.brain = brain.Brain(self.term, self.output_proxy, self.input_proxy)
         self.helper = Helper(self.brain, self.player, self.dungeon)
-        self.map = Map(self.brain, self.player, self.dungeon)
+        self.minimap = Minimap()
 
     def _game_started_checker(self, data):
         """
@@ -273,7 +273,9 @@ class Noobhack:
         """
 
         if self.mode == "map":
-            self.map.display(window, self.toggle_map)
+            from noobhack.game.mapping import Branch
+            levels = Branch(self.dungeon.graph.current)
+            self.minimap.display(levels, window, self.toggle_map)
             # Map mode handles it's own input. Make sure that we don't get
             # forever stuck in map mode by toggling back out of it when it's
             # done.
