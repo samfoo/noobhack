@@ -18,12 +18,14 @@ class Minimap:
 
     def shop_text_as_buffer(self, shops):
         if len(shops) > 0:
-            return ["  Shops:"] + ["    * %s" % s for s in shops]
+            return ["  Shops:"] + ["    * %s" % s.capitalize() for s in shops]
         else:
             return []
 
     def feature_text_as_buffer(self, features):
-        return ["  * %s" % f for f in sorted(features)]
+        return ["  * %s" % f.capitalize() 
+                for f in sorted(features) 
+                if f != "shop"]
 
     def level_text_as_buffer(self, level):
         buf = self.shop_text_as_buffer(level.shops) + \

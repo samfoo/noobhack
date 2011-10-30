@@ -17,7 +17,8 @@ class Branch:
             current = self.current
             potential_nexts = [l for l 
                                in current.stairs.values() 
-                               if l.branch == current.branch]
+                               if l.branch == current.branch
+                                 and l.dlvl > current.dlvl]
             if len(potential_nexts) > 0:
                 self.current = potential_nexts[0]
             else:
