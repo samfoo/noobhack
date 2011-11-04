@@ -1,5 +1,3 @@
-from flexmock import flexmock 
-
 from noobhack.ui.minimap import Minimap
 from noobhack.game.mapping import Level
 

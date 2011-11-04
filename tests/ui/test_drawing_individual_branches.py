@@ -11,9 +11,6 @@ def expect_dlvl_at_index(dlvl, index, branch):
 def expect(branch, results):
     m = Minimap()
     _, buf = m.unconnected_branch_as_buffer_with_indices("Dungeons of Doom", branch)
-    #for l in buf: print l
-    #print "---------------"
-    #for l in results: print l
     assert buf == results
 
 def test_drawing_a_branch_draws_the_header_and_the_border():

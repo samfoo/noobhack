@@ -273,10 +273,7 @@ class Noobhack:
         """
 
         if self.mode == "map":
-            from noobhack.game.mapping import Branch
-            start = min(self.dungeon.graph.levels, key=lambda x: x.dlvl)
-            levels = Branch(start)
-            self.minimap.display(levels, window, self.toggle_map)
+            self.minimap.display(self.dungeon.graph, window, self.toggle_map)
             # Map mode handles it's own input. Make sure that we don't get
             # forever stuck in map mode by toggling back out of it when it's
             # done.

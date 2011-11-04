@@ -96,18 +96,8 @@ class Minimap:
         max_width = size()[1]
         return curses.newpad(max_height, max_width)
 
-    def display(self, dungeon, window, close="`"):
-        plane = self.get_plane_for_map(dungeon)
-        _, buf = self.unconnected_branch_as_buffer_with_indices(
-            "Dungeons of Doom", 
-            dungeon
-        )
-
-        for i, line in enumerate(buf):
-            plane.addstr(i, 0, line)
-
+    def loop_and_listen_for_scroll_events(self, window, plane, close):
         scroll_y = 0
-
         while True:
             plane.noutrefresh(scroll_y, 0, 0, 0, size()[0] - 1, size()[1] - 1)
 
@@ -127,3 +117,22 @@ class Minimap:
                 scroll_y = min(scroll_y + 1, size()[0])
             elif key == close or key == "\x1b":
                 break
+
+    def draw_dungeon(self, dungeon, plane):
+        indices, buf = self.unconnected_branch_as_buffer_with_indices(
+            "Dungeons of Doom", 
+            dungeon.main()
+        )
+
+        current_lvl = indices[dungeon.current.dlvl]
+        end_of_current_lvl = indices.get(dungeon.current.dlvl + 1, len(buf))
+
+        for index, line in enumerate(buf):
+            plane.addstr(index, 0, line)
+            if index >= current_lvl and index < end_of_current_lvl:
+                plane.chgat(index, 0, len(line), get_color(curses.COLOR_GREEN))
+
+    def display(self, dungeon, window, close="`"):
+        plane = self.get_plane_for_map(dungeon.main())
+        self.draw_dungeon(dungeon, plane)
+        self.loop_and_listen_for_scroll_events(window, plane, close)

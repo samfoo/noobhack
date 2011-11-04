@@ -128,6 +128,18 @@ class Map:
             self._link(existing_level, to_pos)
             self.current = existing_level
 
+    def main(self):
+        return Branch(min(self.levels, key=lambda x: x.dlvl))
+
+    def branches(self):
+        def group_min(groups, l):
+            existing_min = groups.get(l.branch, l)
+            if l.dlvl <= existing_min.dlvl:
+                groups[l.branch] = l
+
+        branch_roots = reduce(group_min, self.levels)
+        return [Branch(root) for root in branch_roots]
+
     def travel_by_stairs(self, to_dlvl, to_pos):
         if self.current.has_stairs_at(self.location):
             # If the current level already has stairs at our current position,
