@@ -6,7 +6,7 @@ from flexmock import flexmock
 from noobhack.ui.minimap import Minimap
 from noobhack.game.mapping import Level, Map
 
-from utils import level_chain
+from tests.utils import level_chain
 
 def get_color(_):
     return 0

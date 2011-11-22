@@ -1,7 +1,7 @@
 import sys
 from noobhack.game.mapping import Level
 
-from utils import level_chain
+from tests.utils import level_chain
 
 def test_changing_branches_changes_my_branch():
     l = Level(1, "main")
