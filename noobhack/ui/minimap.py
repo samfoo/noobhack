@@ -6,7 +6,7 @@ import struct
 import locale
 import termios
 
-from noobhack.ui.common import *
+from noobhack.ui.common import get_color, size
 
 class Minimap:
     branch_display_names = {
@@ -118,19 +118,28 @@ class Minimap:
             elif key == close or key == "\x1b":
                 break
 
-    def draw_dungeon(self, dungeon, plane):
+    def _draw_branch_at(self, name, branch, current_dlvl, plane, x_offset, y_offset, color):
         indices, buf = self.unconnected_branch_as_buffer_with_indices(
-            "Dungeons of Doom", 
-            dungeon.main()
+            name,
+            branch
         )
 
-        current_lvl = indices[dungeon.current.dlvl]
-        end_of_current_lvl = indices.get(dungeon.current.dlvl + 1, len(buf))
+        current_lvl = indices[current_dlvl]
+        end_of_current_lvl = indices.get(current_dlvl + 1, len(buf) - 1)
 
         for index, line in enumerate(buf):
-            plane.addstr(index, 0, line)
+            plane.addstr(y_offset + index, x_offset, line)
             if index >= current_lvl and index < end_of_current_lvl:
-                plane.chgat(index, 0, len(line), get_color(curses.COLOR_GREEN))
+                # Hilight the current level in bold green text
+                plane.chgat(
+                    y_offset + index, 
+                    x_offset + 1, 
+                    x_offset + len(line) - 2, 
+                    curses.A_BOLD | color(curses.COLOR_GREEN)
+                )
+
+    def draw_dungeon(self, dungeon, plane, color=get_color):
+        self._draw_branch_at("Dungeons of Doom", dungeon.main(), dungeon.current.dlvl, plane, 0, 0, color)
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
