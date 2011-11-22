@@ -6,6 +6,8 @@ from flexmock import flexmock
 from noobhack.ui.minimap import Minimap
 from noobhack.game.mapping import Level, Map
 
+from utils import level_chain
+
 def get_color(_):
     return 0
 
@@ -14,16 +16,6 @@ def fixed_graph():
     dmap = Map(levels[0], 0, 0)
     dmap.levels = set(levels)
     return dmap
-
-def level_chain(size, branch, start_at=1):
-    def link(first, second):
-        first.add_stairs(second, (0, 0))
-        second.add_stairs(first, (0, 0))
-        return second
-
-    levels = [Level(i, branch) for i in xrange(start_at, size + start_at)]
-    reduce(link, levels)
-    return levels
 
 def newpad():
     pad = flexmock(None)
