@@ -53,7 +53,7 @@ def test_drawing_a_single_shop_indents_and_translates():
     expect(level, [
         "Level 1:",
         "  Shops:",
-        "    * random",
+        "    * Random",
     ])
 
 def test_drawing_features_and_shops_draws_the_shops_first():
