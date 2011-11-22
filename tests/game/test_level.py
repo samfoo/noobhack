@@ -21,6 +21,25 @@ def test_changing_branches_changes_only_those_levels_that_are_below_the_branch_t
     assert all(l.branch == "mines" for l in levels if l.dlvl > 1)
     assert levels[0].branch == "main"
 
+def test_level_with_branch_has_a_branch():
+    levels = level_chain(2, "main")
+    levels[1].change_branch_to("mines")
+    first = levels[0]
+
+    assert first.has_a_branch() == True
+    assert first.branches() == [levels[1]]
+
+def test_level_with_no_children_doesnt_have_a_branch():
+    l = Level(1, "main")
+
+    assert l.has_a_branch() == False
+
+def test_level_with_only_one_child_that_doesnt_have_a_branch_has_no_branch():
+    levels = level_chain(2, "main")
+    first = levels[0]
+
+    assert first.has_a_branch() == False
+
 def test_changing_branch_to_sokoban_doesnt_change_children_branches():
     levels = level_chain(5, "main")
     sokoban = Level(3)

@@ -129,8 +129,9 @@ class Minimap:
 
         for index, line in enumerate(buf):
             plane.addstr(y_offset + index, x_offset, line)
+
+            # Hilight the current level in bold green text
             if index >= current_lvl and index < end_of_current_lvl:
-                # Hilight the current level in bold green text
                 plane.chgat(
                     y_offset + index, 
                     x_offset + 1, 

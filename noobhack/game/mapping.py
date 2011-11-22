@@ -8,6 +8,18 @@ class Branch:
     def __len__(self):
         return len([l for l in self])
 
+    def subbranches(self):
+        # Check me out!
+        # I'm probably not performant. Oh well...
+        this_branch = self.start.branch
+
+        # TODO: Can a level have connections to more than one dungeon branch?
+        roots = [l.branches()[0] for l
+                 in self
+                 if l.has_a_branch()]
+
+        return [Branch(r) for r in roots]
+
     def next(self):
         # Go down the stairs (if they exist) to the next level below this one
         # on the same branch.
@@ -64,13 +76,18 @@ class Level(object):
     def has_stairs_at(self, pos):
         return self.stairs_at(pos) != None
 
+    def branches(self):
+        return [l for l in self.stairs.values() if l.branch != self.branch]
+
+    def has_a_branch(self):
+        return len(self.stairs) > 1 or \
+                (len(self.stairs.values()) > 0 and \
+                 self.stairs.values()[0].branch != self.branch)
+
     def is_a_junction(self):
         below = [l for l in self.stairs.values() if l.dlvl > self.dlvl]
         above = [l for l in self.stairs.values() if l.dlvl < self.dlvl]
         return len(below) > 1 or len(above) > 1
-
-    def __repr__(self):
-        return repr([self.dlvl, self.branch, self.stairs])
 
 class Map:
     def __init__(self, level, x, y):
