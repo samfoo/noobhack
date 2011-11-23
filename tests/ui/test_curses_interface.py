@@ -67,9 +67,9 @@ def test_drawing_a_graph_with_multiple_branches_colors_a_current_level_off_the_m
     levels[1].change_branch_to("mines")
 
     window = newpad() 
+    window.should_receive("chgat").with_args(5, 31, 25, curses.A_BOLD | 0).times(1)
+    window.should_receive("chgat").with_args(6, 31, 25, curses.A_BOLD | 0).times(1)
     window.should_receive("chgat").with_args(7, 31, 25, curses.A_BOLD | 0).times(1)
-    window.should_receive("chgat").with_args(8, 31, 25, curses.A_BOLD | 0).times(1)
-    window.should_receive("chgat").with_args(9, 31, 25, curses.A_BOLD | 0).times(1)
 
     m = Minimap()
     dungeon = fixed_graph(levels)
