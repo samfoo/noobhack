@@ -8,7 +8,10 @@ class Branch:
     def __len__(self):
         return len([l for l in self])
 
-    def subbranches(self):
+    def name(self):
+        return self.start.branch
+
+    def sub_branches(self):
         # Check me out!
         # I'm probably not performant. Oh well...
         this_branch = self.start.branch
@@ -80,9 +83,7 @@ class Level(object):
         return [l for l in self.stairs.values() if l.branch != self.branch]
 
     def has_a_branch(self):
-        return len(self.stairs) > 1 or \
-                (len(self.stairs.values()) > 0 and \
-                 self.stairs.values()[0].branch != self.branch)
+        return any(l.branch != self.branch for l in self.stairs.values())
 
     def is_a_junction(self):
         below = [l for l in self.stairs.values() if l.dlvl > self.dlvl]
