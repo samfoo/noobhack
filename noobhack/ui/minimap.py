@@ -118,6 +118,11 @@ class Minimap:
             elif key == close or key == "\x1b":
                 break
 
+    def _draw_down_connecter(self, plane, x_offset, y_offset):
+        plane.addstr(y_offset, x_offset, ".")
+        plane.addstr(y_offset + 1, x_offset + 1, "\\")
+        plane.addstr(y_offset + 2, x_offset + 2, "*")
+
     def _draw_branch_at(self, branch, current, plane, x_offset, y_offset, color, drawn):
         drawn.update({branch.name(): True})
 
@@ -131,8 +136,8 @@ class Minimap:
             # Hilight the current level in bold green text if it's in this
             # branch. 
             if current.branch == branch.name() and \
-               index >= indices[current.dlvl] and \
-               index < indices.get(current.dlvl + 1, len(buf) - 1):
+               index >= y_offset + indices[current.dlvl] and \
+               index < y_offset + indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
                     y_offset + index, 
                     x_offset + 1, 
@@ -142,11 +147,12 @@ class Minimap:
 
         for sub_branch in branch.sub_branches():
             if not drawn.has_key(sub_branch.name()):
-                connect_at = indices[sub_branch.start.branches()[0].dlvl]
+                connect_at = y_offset + indices[sub_branch.start.branches()[0].dlvl] - 1
                 self._draw_branch_at(
                     sub_branch, current, plane, 
                     x_offset + len(buf[0]) + 3, connect_at, color, drawn
                 )
+                self._draw_down_connecter(plane, x_offset + len(buf[0]), connect_at + 1)
                 drawn.update({sub_branch.name(): True})
 
 
