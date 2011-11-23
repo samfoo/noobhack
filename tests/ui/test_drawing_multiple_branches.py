@@ -18,12 +18,11 @@ def graph(levels=None):
     dmap.levels = set(levels)
     return dmap
 
-def expect(dungeon, results):
+def expect(dungeon, results, x_offset=0, y_offset=0):
     m = Minimap()
     pad = flexmock(MemoryPad())
     pad.should_receive("chgat")
-    m.draw_dungeon(dungeon, pad, 0, 0, get_color)
-    print pad
+    m.draw_dungeon(dungeon, pad, x_offset, y_offset, get_color)
     assert results == pad.buf
 
 def test_drawing_a_graph_with_mines():
@@ -128,3 +127,34 @@ def test_drawing_a_graph_with_sokoban():
         "' ...                     '",
     ])
 
+def test_drawing_a_graph_with_both_mines_and_sokoban():
+    levels = level_chain(4, "main")
+    levels[1].change_branch_to("mines")
+    more_main = level_chain(3, "main", 2)
+    more_main[0].add_stairs(levels[0], (5, 5))
+    levels[0].add_stairs(more_main[0], (5, 5))
+
+    sokoban = level_chain(2, "sokoban", 2)
+
+    more_main[-1].add_stairs(sokoban[-1], (1, 1))
+    sokoban[-1].add_stairs(more_main[-1], (2, 2))
+
+    dungeon = graph(levels + more_main + sokoban)
+    expect(dungeon, [
+        "                                                  .-------------------------.",
+        "                                                  | main                    |",
+        "                    .-------------------------.   |=========================|   .-------------------------.",
+        "                    | sokoban                 |   | Level 1:                |\  | mines                   |",
+        "                    |=========================|   |   (nothing interesting) | \ |=========================|",
+        "                    | Level 2:                |   |                         |  *| Level 2:                |",
+        "                    |   (nothing interesting) |   | Level 2:                |   |   (nothing interesting) |",
+        "                    |                         |   |   (nothing interesting) |   |                         |",
+        "                    | Level 3:                |   |                         |   | Level 3:                |",
+        "                    |   (nothing interesting) |*  | Level 3:                |   |   (nothing interesting) |",
+        "                    |                         | \ |   (nothing interesting) |   |                         |",
+        "                    '-------------------------'  \|                         |   | Level 4:                |",
+        "                                                  | Level 4:                |   |   (nothing interesting) |",
+        "                                                  |   (nothing interesting) |   |                         |",
+        "                                                  |                         |   ' ...                     '",
+        "                                                  ' ...                     '",
+    ], 50, 0)
