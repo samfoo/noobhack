@@ -139,7 +139,7 @@ class Minimap:
                 drawn.update({sub_branch.name(): True})
 
                 branch_junction = [l for l
-                                   in sub_branch.start.branches()
+                                   in sub_branch.junction.branches()
                                    if l.branch == parent.name()][0]
 
                 if branch_junction.dlvl < sub_branch.start.dlvl:

@@ -1,12 +1,23 @@
 class Branch:
-    def __init__(self, start):
-        self.current = self.start = start
+    def __init__(self, junction):
+        self.junction = junction
+        self.current = self.start = self.find_top(junction)
 
     def __iter__(self):
         return Branch(self.start)
 
     def __len__(self):
         return len([l for l in self])
+
+    def find_top(self, level):
+        ups = [l for l 
+               in level.stairs.values()
+               if l.dlvl < level.dlvl
+               and l.branch == level.branch]
+        if len(ups) == 0:
+            return level
+        else:
+            return self.find_top(ups[0])
 
     def name(self):
         return self.start.branch

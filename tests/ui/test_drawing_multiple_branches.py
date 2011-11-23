@@ -102,11 +102,11 @@ def test_drawing_a_graph_with_mines_that_have_a_branch_themselves():
     ])
 
 def test_drawing_a_graph_with_sokoban():
-    main = level_chain(3, "main")
-    sokoban = level_chain(2, "sokoban")
+    main = level_chain(4, "main")
+    sokoban = level_chain(2, "sokoban", 2)
 
-    main[2].add_stairs(sokoban[-1], (1, 1))
-    sokoban[-1].add_stairs(main[2], (2, 2))
+    main[3].add_stairs(sokoban[-1], (1, 1))
+    sokoban[-1].add_stairs(main[3], (2, 2))
 
     dungeon = graph(main + sokoban)
     expect(dungeon, [
@@ -117,10 +117,14 @@ def test_drawing_a_graph_with_sokoban():
         "|   (nothing interesting) |   |=========================|",
         "|                         |   | Level 2:                |",
         "| Level 2:                |   |   (nothing interesting) |",
+        "|   (nothing interesting) |   |                         |",
+        "|                         |   | Level 3:                |",
+        "| Level 3:                |   |   (nothing interesting) |",
         "|   (nothing interesting) |  *|                         |",
         "|                         | / '-------------------------'",
-        "| Level 3:                |/",
+        "| Level 4:                |/",
         "|   (nothing interesting) |",
         "|                         |",
         "' ...                     '",
     ])
+
