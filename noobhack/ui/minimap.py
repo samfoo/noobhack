@@ -147,7 +147,9 @@ class Minimap:
 
         for sub_branch in branch.sub_branches():
             if not drawn.has_key(sub_branch.name()):
-                connect_at = y_offset + indices[sub_branch.start.branches()[0].dlvl] - 1
+                connect_at = y_offset + indices[[l for l 
+                                                 in sub_branch.start.branches()
+                                                 if l.branch == branch.name()][0].dlvl] - 1
                 self._draw_branch_at(
                     sub_branch, current, plane, 
                     x_offset + len(buf[0]) + 3, connect_at, color, drawn

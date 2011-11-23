@@ -81,26 +81,31 @@ def test_drawing_a_graph_with_mines_that_have_a_branch_themselves():
     more_main[0].add_stairs(levels[0], (5, 5))
     levels[0].add_stairs(more_main[0], (5, 5))
 
-    dungeon = graph(levels)
+    dungeon = graph(levels + more_main)
     expect(dungeon, [
         ".-------------------------.",
         "| main                    |",
-        "|=========================|",
-        "| Level 1:                |",
-        "|   (nothing interesting) |",
-        "|                         |",
-        "| Level 2:                |",
-        "|   (nothing interesting) |",
-        "|                         |   .-------------------------.",
-        "| Level 3:                |.  | mines                   |",
+        "|=========================|   .-------------------------.",
+        "| Level 1:                |.  | mines                   |",
         "|   (nothing interesting) | \ |=========================|   .-------------------------.",
         "|                         |  *| Level 2:                |.  | other                   |",
-        "| Level 4:                |   |   (nothing interesting) | \ |=========================|",
+        "| Level 2:                |   |   (nothing interesting) | \ |=========================|",
         "|   (nothing interesting) |   |                         |  *| Level 3:                |",
         "|                         |   ' ...                     '   |   (nothing interesting) |",
-        "' ...                     '                                 |                         |",
-        "                                                            | Level 4:                |",
-        "                                                            |   (nothing interesting) |",
-        "                                                            |                         |",
-        "                                                            ' ...                     '",
+        "| Level 3:                |                                 |                         |",
+        "|   (nothing interesting) |                                 | Level 4:                |",
+        "|                         |                                 |   (nothing interesting) |",
+        "| Level 4:                |                                 |                         |",
+        "|   (nothing interesting) |                                 ' ...                     '",
+        "|                         |",
+        "' ...                     '",
     ])
+
+def test_drawing_a_graph_with_sokoban():
+    main = level_chain(3, "main")
+    sokoban = level_chain(2, "sokoban")
+
+    main[2].add_stairs(sokoban[-1], (1, 1))
+    sokoban[-1].add_stairs(main[2], (2, 2))
+
+    dungeon = graph(main + sokoban)
