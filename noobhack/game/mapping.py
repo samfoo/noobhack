@@ -147,7 +147,9 @@ class Map:
             self.current = existing_level
 
     def main(self):
-        return Branch(min(self.levels, key=lambda x: x.dlvl))
+        return Branch([l for l
+                       in self.levels
+                       if l.dlvl == 1 and l.branch == "main"][0])
 
     def branches(self):
         def group_min(groups, l):

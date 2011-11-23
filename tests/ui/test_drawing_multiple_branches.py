@@ -35,7 +35,7 @@ def test_drawing_a_graph_with_mines():
         ".-------------------------.",
         "| main                    |",
         "|=========================|   .-------------------------.",
-        "| Level 1:                |.  | mines                   |",
+        "| Level 1:                |\  | mines                   |",
         "|   (nothing interesting) | \ |=========================|",
         "|                         |  *| Level 2:                |",
         "' ...                     '   |   (nothing interesting) |",
@@ -58,7 +58,7 @@ def test_drawing_a_graph_with_mines_and_a_parallel_main():
         ".-------------------------.",
         "| main                    |",
         "|=========================|   .-------------------------.",
-        "| Level 1:                |.  | mines                   |",
+        "| Level 1:                |\  | mines                   |",
         "|   (nothing interesting) | \ |=========================|",
         "|                         |  *| Level 2:                |",
         "| Level 2:                |   |   (nothing interesting) |",
@@ -86,9 +86,9 @@ def test_drawing_a_graph_with_mines_that_have_a_branch_themselves():
         ".-------------------------.",
         "| main                    |",
         "|=========================|   .-------------------------.",
-        "| Level 1:                |.  | mines                   |",
+        "| Level 1:                |\  | mines                   |",
         "|   (nothing interesting) | \ |=========================|   .-------------------------.",
-        "|                         |  *| Level 2:                |.  | other                   |",
+        "|                         |  *| Level 2:                |\  | other                   |",
         "| Level 2:                |   |   (nothing interesting) | \ |=========================|",
         "|   (nothing interesting) |   |                         |  *| Level 3:                |",
         "|                         |   ' ...                     '   |   (nothing interesting) |",
@@ -109,3 +109,18 @@ def test_drawing_a_graph_with_sokoban():
     sokoban[-1].add_stairs(main[2], (2, 2))
 
     dungeon = graph(main + sokoban)
+    expect(dungeon, [
+        ".-------------------------.",
+        "| main                    |",
+        "|=========================|   .-------------------------.",
+        "| Level 1:                |   | sokoban                 |",
+        "|   (nothing interesting) |   |=========================|",
+        "|                         |   | Level 2:                |",
+        "| Level 2:                |   |   (nothing interesting) |",
+        "|   (nothing interesting) |  *|                         |",
+        "|                         | / '-------------------------'",
+        "| Level 3:                |/",
+        "|   (nothing interesting) |",
+        "|                         |",
+        "' ...                     '",
+    ])

@@ -72,7 +72,10 @@ class Minimap:
     def footer_as_buffer(self, width):
         return [self.line_to_display("...", width, "'")]
 
-    def unconnected_branch_as_buffer_with_indices(self, display_name, branch):
+    def end_as_buffer(self, width):
+        return [self.line_to_display("-" * (width - 2), width, "'", "")]
+
+    def unconnected_branch_as_buffer_with_indices(self, display_name, branch, end=False):
         indices, level_texts = self.layout_level_text_buffers(branch)
         max_level_text_width = len(max(level_texts, key=len))
 
@@ -81,7 +84,10 @@ class Minimap:
 
         header = self.header_as_buffer(display_name, width)
         body = [self.line_to_display(t, width) for t in level_texts]
-        footer = self.footer_as_buffer(width)
+        if not end:
+            footer = self.footer_as_buffer(width)
+        else:
+            footer = self.end_as_buffer(width)
 
         # Adjust the indices to account for the header
         indices = dict([(dlvl, index + len(header)) 
@@ -118,35 +124,46 @@ class Minimap:
             elif key == close or key == "\x1b":
                 break
 
-    def _draw_down_connecter(self, plane, x_offset, y_offset):
-        plane.addstr(y_offset, x_offset, ".")
-        plane.addstr(y_offset + 1, x_offset + 1, "\\")
-        plane.addstr(y_offset + 2, x_offset + 2, "*")
+    def _draw_down_right_connecter(self, plane, x_offset, y_offset):
+        for i, sym in enumerate(["\\", "\\", "*"]):
+            plane.addstr(y_offset + i, x_offset + i, sym)
 
-    def _draw_sub_branches(self, branch, current, plane, 
+    def _draw_up_right_connecter(self, plane, x_offset, y_offset):
+        for i, sym in enumerate(["/", "/", "*"]):
+            plane.addstr(y_offset - i, x_offset + i, sym)
+
+    def _draw_sub_branches(self, parent, current, plane, 
                            indices, x_offset, y_offset, color, drawn):
-        for sub_branch in branch.sub_branches():
+        for i, sub_branch in enumerate(parent.sub_branches()):
             if not drawn.has_key(sub_branch.name()):
-                connect_at = y_offset + indices[[l for l 
-                                                 in sub_branch.start.branches()
-                                                 if l.branch == branch.name()][0].dlvl] - 1
-                self._draw_branch_at(
-                    sub_branch, current, plane, 
-                    x_offset + 3, connect_at, color, drawn
-                )
-                self._draw_down_connecter(plane, x_offset, connect_at + 1)
                 drawn.update({sub_branch.name(): True})
 
-    def _draw_branch_to(self, branch, current, plan,
+                branch_junction = [l for l
+                                   in sub_branch.start.branches()
+                                   if l.branch == parent.name()][0]
+
+                if branch_junction.dlvl < sub_branch.start.dlvl:
+                    draw = self._draw_branch_at
+                    connect = self._draw_down_right_connecter
+                else:
+                    draw = self._draw_branch_to
+                    connect = self._draw_up_right_connecter
+
+                connect_at = y_offset + indices[branch_junction.dlvl] - 1
+                draw(sub_branch, current, plane, 
+                     x_offset + 3, connect_at, color, drawn)
+                connect(plane, x_offset, connect_at + 1)
+
+    def _draw_branch_to(self, branch, current, plane,
                         x_offset, y_offset, color, drawn):
         drawn.update({branch.name(): True})
 
         indices, buf = self.unconnected_branch_as_buffer_with_indices(
-            branch.name(), branch
+            branch.name(), branch, True
         )
 
         for index, line in enumerate(buf):
-            plane.addstr(y_offset - len(buf) + index, x_offset, line)
+            plane.addstr(y_offset + 1 - len(buf) + index, x_offset, line)
 
             # Hilight the current level in bold green text if it's in this
             # branch. 
@@ -156,7 +173,7 @@ class Minimap:
                 plane.chgat(
                     y_offset - len(buf) + index, 
                     x_offset + 1, 
-                    x_offset + len(line) - 2, 
+                    len(line) - 2, 
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
 
@@ -181,7 +198,7 @@ class Minimap:
                 plane.chgat(
                     y_offset + index, 
                     x_offset + 1, 
-                    x_offset + len(line) - 2, 
+                    len(line) - 2, 
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
 
@@ -195,5 +212,5 @@ class Minimap:
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
-        self.draw_dungeon(dungeon, plane)
+        self.draw_dungeon(dungeon, plane, size()[0] / 2 + 15, 0)
         self.loop_and_listen_for_scroll_events(window, plane, close)
