@@ -197,8 +197,8 @@ class Minimap:
             # Hilight the current level in bold green text if it's in this
             # branch. 
             if current.branch == branch.name() and \
-               index >= real_y_offset + indices[current.dlvl] and \
-               index < real_y_offset + indices.get(current.dlvl + 1, len(buf) - 1):
+               index >= indices[current.dlvl] and \
+               index < indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
                     real_y_offset + index, 
                     real_x_offset + 1, 
@@ -220,17 +220,22 @@ class Minimap:
             branch.name(), branch
         )
 
+        if left:
+            real_x_offset = x_offset - len(buf[0])
+        else:
+            real_x_offset = x_offset
+
         for index, line in enumerate(buf):
             plane.addstr(y_offset + index, x_offset, line)
 
             # Hilight the current level in bold green text if it's in this
             # branch. 
             if current.branch == branch.name() and \
-               index >= y_offset + indices[current.dlvl] and \
-               index < y_offset + indices.get(current.dlvl + 1, len(buf) - 1):
+               index >= indices[current.dlvl] and \
+               index < indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
                     y_offset + index, 
-                    x_offset + 1, 
+                    real_x_offset + 1, 
                     len(line) - 2, 
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
