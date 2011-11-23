@@ -118,20 +118,21 @@ class Minimap:
             elif key == close or key == "\x1b":
                 break
 
-    def _draw_branch_at(self, name, branch, current_dlvl, plane, x_offset, y_offset, color):
-        indices, buf = self.unconnected_branch_as_buffer_with_indices(
-            name,
-            branch
-        )
+    def _draw_branch_at(self, branch, current, plane, x_offset, y_offset, color, drawn):
+        drawn.update({branch.name(): True})
 
-        current_lvl = indices[current_dlvl]
-        end_of_current_lvl = indices.get(current_dlvl + 1, len(buf) - 1)
+        indices, buf = self.unconnected_branch_as_buffer_with_indices(
+            branch.name(), branch
+        )
 
         for index, line in enumerate(buf):
             plane.addstr(y_offset + index, x_offset, line)
 
-            # Hilight the current level in bold green text
-            if index >= current_lvl and index < end_of_current_lvl:
+            # Hilight the current level in bold green text if it's in this
+            # branch. 
+            if current.branch == branch.name() and \
+               index >= indices[current.dlvl] and \
+               index < indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
                     y_offset + index, 
                     x_offset + 1, 
@@ -139,8 +140,21 @@ class Minimap:
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
 
-    def draw_dungeon(self, dungeon, plane, color=get_color):
-        self._draw_branch_at("Dungeons of Doom", dungeon.main(), dungeon.current.dlvl, plane, 0, 0, color)
+        for sub_branch in branch.sub_branches():
+            if not drawn.has_key(sub_branch.name()):
+                connect_at = indices[sub_branch.start.branches()[0].dlvl]
+                self._draw_branch_at(
+                    sub_branch, current, plane, 
+                    x_offset + len(buf[0]) + 3, connect_at, color, drawn
+                )
+                drawn.update({sub_branch.name(): True})
+
+
+    def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
+        self._draw_branch_at(
+            dungeon.main(), dungeon.current, plane, 
+            x_offset, y_offset, color, {}
+        )
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
