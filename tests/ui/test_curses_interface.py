@@ -1,4 +1,3 @@
-import sys
 import curses
 
 from flexmock import flexmock
@@ -7,26 +6,7 @@ from noobhack.ui.common import size
 from noobhack.ui.minimap import Minimap
 from noobhack.game.mapping import Level, Map
 
-from tests.utils import level_chain
-
-class MemoryPad:
-    def __init__(self):
-        self.buf = []
-
-    def chgat(self, *args):
-        pass
-
-    def addstr(self, y_offset, x_offset, text):
-        if len(self.buf) <= y_offset:
-            self.buf.extend([""] * (y_offset - len(self.buf) + 1))
-        line = self.buf[y_offset]
-        if len(line) <= (x_offset + len(text)):
-            line += " " * ((x_offset + len(text)) - len(line))
-        line = line[:x_offset] + text + line[x_offset+len(text):]
-        self.buf[y_offset] = line
-
-    def __str__(self):
-        return "\n".join(self.buf) 
+from tests.utils import level_chain, MemoryPad
 
 def get_color(_):
     return 0
