@@ -123,7 +123,47 @@ class Minimap:
         plane.addstr(y_offset + 1, x_offset + 1, "\\")
         plane.addstr(y_offset + 2, x_offset + 2, "*")
 
-    def _draw_branch_at(self, branch, current, plane, x_offset, y_offset, color, drawn):
+    def _draw_sub_branches(self, branch, current, plane, 
+                           indices, x_offset, y_offset, color, drawn):
+        for sub_branch in branch.sub_branches():
+            if not drawn.has_key(sub_branch.name()):
+                connect_at = y_offset + indices[[l for l 
+                                                 in sub_branch.start.branches()
+                                                 if l.branch == branch.name()][0].dlvl] - 1
+                self._draw_branch_at(
+                    sub_branch, current, plane, 
+                    x_offset + 3, connect_at, color, drawn
+                )
+                self._draw_down_connecter(plane, x_offset, connect_at + 1)
+                drawn.update({sub_branch.name(): True})
+
+    def _draw_branch_to(self, branch, current, plan,
+                        x_offset, y_offset, color, drawn):
+        drawn.update({branch.name(): True})
+
+        indices, buf = self.unconnected_branch_as_buffer_with_indices(
+            branch.name(), branch
+        )
+
+        for index, line in enumerate(buf):
+            plane.addstr(y_offset - len(buf) + index, x_offset, line)
+
+            # Hilight the current level in bold green text if it's in this
+            # branch. 
+            if current.branch == branch.name() and \
+               index >= y_offset - len(buf) + indices[current.dlvl] and \
+               index < y_offset - len(buf) + indices.get(current.dlvl + 1, len(buf) - 1):
+                plane.chgat(
+                    y_offset - len(buf) + index, 
+                    x_offset + 1, 
+                    x_offset + len(line) - 2, 
+                    curses.A_BOLD | color(curses.COLOR_GREEN)
+                )
+
+        self._draw_sub_branches(branch, current, plane, indices, x_offset + len(buf[0]), y_offset, color, drawn)
+
+    def _draw_branch_at(self, branch, current, plane, 
+                        x_offset, y_offset, color, drawn):
         drawn.update({branch.name(): True})
 
         indices, buf = self.unconnected_branch_as_buffer_with_indices(
@@ -145,18 +185,7 @@ class Minimap:
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
 
-        for sub_branch in branch.sub_branches():
-            if not drawn.has_key(sub_branch.name()):
-                connect_at = y_offset + indices[[l for l 
-                                                 in sub_branch.start.branches()
-                                                 if l.branch == branch.name()][0].dlvl] - 1
-                self._draw_branch_at(
-                    sub_branch, current, plane, 
-                    x_offset + len(buf[0]) + 3, connect_at, color, drawn
-                )
-                self._draw_down_connecter(plane, x_offset + len(buf[0]), connect_at + 1)
-                drawn.update({sub_branch.name(): True})
-
+        self._draw_sub_branches(branch, current, plane, indices, x_offset + len(buf[0]), y_offset, color, drawn)
 
     def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
         self._draw_branch_at(
