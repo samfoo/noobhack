@@ -17,6 +17,11 @@ class MemoryPad:
     def chgat(self, *args):
         pass
 
+    def getmaxyx(self):
+        # This number doesn't really matter, it just needs to be bigger than
+        # the space that's going to be drawn to.
+        return (9999, 9999)
+
     def addstr(self, y_offset, x_offset, text):
         if len(self.buf) <= y_offset:
             self.buf.extend([""] * (y_offset - len(self.buf) + 1))

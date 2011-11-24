@@ -154,6 +154,9 @@ class Minimap:
     def _draw_sub_branches(self, parent, current, plane, 
                            indices, left_x_offset, right_x_offset, y_offset, 
                            color, drawn, left=False, alternate=True):
+        left_x, right_x, top_y, bottom_y = plane.getmaxyx()[1], 0, plane.getmaxyx()[0], 0
+        bounds = (left_x, right_x, top_y, bottom_y)
+
         for i, sub_branch in enumerate(parent.sub_branches()):
             if not drawn.has_key(sub_branch.name()):
                 drawn.update({sub_branch.name(): True})
@@ -179,22 +182,31 @@ class Minimap:
                     connect_offset = right_x_offset
 
                 connect_at = y_offset + indices[branch_junction.dlvl] - 1
-                draw(sub_branch, current, plane, 
+                sub_bounds = draw(sub_branch, current, plane, 
                      x_offset, connect_at, color, 
                      drawn, left, False)
+
+                bounds = (
+                    min(sub_bounds[0], bounds[0]),
+                    max(sub_bounds[1], bounds[1]),
+                    min(sub_bounds[2], bounds[2]),
+                    max(sub_bounds[3], bounds[3]),
+                )
+
                 connect(plane, connect_offset, connect_at + 1, left)
+        return bounds
 
     def _draw_branch_to(self, branch, current, plane,
                         x_offset, y_offset, color, drawn, 
                         left=False, alternate=True):
-        self._draw_branch(branch, current, plane,
+        return self._draw_branch(branch, current, plane,
                           x_offset, y_offset, color,
                           drawn, True, left, alternate)
 
     def _draw_branch_at(self, branch, current, plane, 
                         x_offset, y_offset, color, drawn, 
                         left=False, alternate=True):
-        self._draw_branch(branch, current, plane,
+        return self._draw_branch(branch, current, plane,
                           x_offset, y_offset, color,
                           drawn, False, left, alternate)
 
@@ -232,20 +244,32 @@ class Minimap:
                     curses.A_BOLD | color(curses.COLOR_GREEN)
                 )
 
-        self._draw_sub_branches(
+        # Determine our bounding box.
+        left_x = real_x_offset
+        right_x = real_x_offset + len(buf[0])
+        top_y = real_y_offset
+        bottom_y = real_y_offset + len(buf)
+
+        bounds = (left_x, right_x, top_y, bottom_y)
+
+        sub_bounds = self._draw_sub_branches(
             branch, current, plane, indices, 
             real_x_offset, real_x_offset + len(buf[0]),
             real_y_offset, color, drawn, left, alternate
         )
 
+        return (
+            min(sub_bounds[0], bounds[0]),
+            max(sub_bounds[1], bounds[1]),
+            min(sub_bounds[2], bounds[2]),
+            max(sub_bounds[3], bounds[3]),
+        )
+
     def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
-        bounds = self._draw_branch_at(
+        return self._draw_branch_at(
             dungeon.main(), dungeon.current, plane, 
             x_offset, y_offset, color, {}
         )
-
-        #min_x, max_x, min_y, max_y, current_lvl_x, current_lvl_y = bounds
-        #return (min_x, max_x, min_y, max_y, current_lvl_x, current_lvl_y)
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
