@@ -6,7 +6,7 @@ import struct
 import locale
 import termios
 
-from noobhack.game import shops
+from noobhack.game import shops, status
 from noobhack.ui.common import *
 
 class Helper:
