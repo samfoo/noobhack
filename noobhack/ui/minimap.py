@@ -254,5 +254,5 @@ class Minimap:
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
-        self.draw_dungeon(dungeon, plane, size()[0] / 2 + 15, 0)
+        self.draw_dungeon(dungeon, plane, size()[0] / 2, 0)
         self.loop_and_listen_for_scroll_events(window, plane, close)
