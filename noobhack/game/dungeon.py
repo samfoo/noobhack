@@ -177,7 +177,20 @@ class Dungeon:
         self.current_level().shops.add(shops.types[shop_type]) 
 
     def _branch_change_handler(self, _, branch):
-        self.graph.change_branch_to(branch)
+        # I'm really reluctant to put logic in here, beyond just a basic event
+        # handler. However, until Brain is refactored into some more meaningful
+        # structure, there's a couple edge cases where a level can be detected
+        # as "mines" even though it's clearly not the mines.
+        #
+        # Specifically: When in the upper levels of sokoban and traveling 
+        # downward. Mines obviously only exists off of "main" or "not sure", it
+        # can never come out of "sokoban". Enforcing that here is the easiest
+        # way to fix weird branching craziness.
+        if branch == "mines" and \
+           self.current_level().branch not in ["main", "not sure"]:
+            pass
+        else:
+            self.graph.change_branch_to(branch)
 
     def _level_feature_handler(self, _, feature):
         self.current_level().features.add(feature)

@@ -87,7 +87,11 @@ class Brain:
 
     def _dispatch_branch_change_event(self):
         level = [line.translate(ibm) for line in self.term.display]
-        if self.last_move == "down" and 3 <= self.dlvl <= 10 and \
+        if 6 <= self.dlvl <= 10 and dungeon.looks_like_sokoban(level):
+            # If the player arrived at a level that looks like sokoban, she's 
+            # definitely in sokoban.
+            dispatcher.dispatch("branch-change", "sokoban")
+        elif self.last_move == "down" and 3 <= self.dlvl <= 6 and \
            dungeon.looks_like_mines(level): 
             # The only entrace to the mines is between levels 3 and 5 and
             # the player has to have been traveling down to get there. Also
@@ -95,10 +99,6 @@ class Brain:
             # a couple turns to identify the mines. Sokoban, by it's nature
             # however is instantly identifiable. 
             dispatcher.dispatch("branch-change", "mines")
-        elif self.last_move == "up" and dungeon.looks_like_sokoban(level):
-            # If the player traveled up and arrived at a level that looks
-            # like sokoban, she's definitely in sokoban.
-            dispatcher.dispatch("branch-change", "sokoban")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
