@@ -320,5 +320,8 @@ if __name__ == "__main__":
     hack = Noobhack()
     try:
         curses.wrapper(hack.run)
-    except IOError, exit_message:
-        print exit_message
+    except process.ProcError, e:
+        pid, exit = os.wait()
+        sys.stdout.write(e.stdout.read())
+    except IOError, e:
+        print e

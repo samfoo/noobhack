@@ -5,6 +5,10 @@ import select
 import signal
 import termios
 
+class ProcError(EnvironmentError):
+    def __init__(self, stdout):
+        self.stdout = stdout
+
 class Local:
     """
     Runs and manages the input/output of a local nethack game. The game is
@@ -49,15 +53,7 @@ class Local:
             self.resize_child()
 
     def _close(self, *_):
-        try:
-            self.stdout.close()
-            self.stdin.close()
-        except IOError:
-            # The child is dead, the pipe is invalid, trying to close the files
-            # throws an IOError that we can safely ignore here.
-            pass
-
-        raise IOError("Nethack exited.")
+        raise ProcError(self.stdout)
 
     def resize_child(self, *_):
         # Get the host app's terminal size first.
