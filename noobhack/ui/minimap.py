@@ -200,7 +200,7 @@ class Minimap:
                index >= indices[current.dlvl] and \
                index < indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
-                    real_y_offset + index, 
+                    real_y_offset + index + 1, 
                     real_x_offset + 1, 
                     len(line) - 2, 
                     curses.A_BOLD | color(curses.COLOR_GREEN)
@@ -254,5 +254,5 @@ class Minimap:
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
-        self.draw_dungeon(dungeon, plane, size()[0] / 2, 0)
+        self.draw_dungeon(dungeon, plane, size()[0] / 2 + 10, 15)
         self.loop_and_listen_for_scroll_events(window, plane, close)
