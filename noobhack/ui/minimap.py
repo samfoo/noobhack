@@ -181,15 +181,19 @@ class Minimap:
                      x_offset, connect_at, color, drawn, left or (i % 2) == 1)
                 connect(plane, connect_offset, connect_at + 1, left)
 
-    def _draw_branch_to(self, branch, current, plane,
-                        x_offset, y_offset, color, drawn, left=False):
+    def _draw_branch(self, branch, current, plane, 
+                     x_offset, y_offset, color, drawn,
+                     to=False, left=False):
         drawn.update({branch.name(): True})
 
         indices, buf = self.unconnected_branch_as_buffer_with_indices(
-            branch.name(), branch, True
+            branch.name(), branch, to
         )
 
-        real_y_offset = y_offset - len(buf)
+        if to:
+            real_y_offset = y_offset - len(buf) + 1
+        else:
+            real_y_offset = y_offset
 
         if left:
             real_x_offset = x_offset - len(buf[0])
@@ -197,7 +201,7 @@ class Minimap:
             real_x_offset = x_offset
 
         for index, line in enumerate(buf):
-            plane.addstr(real_y_offset + 1 + index, real_x_offset, line)
+            plane.addstr(real_y_offset + index, real_x_offset, line)
 
             # Hilight the current level in bold green text if it's in this
             # branch. 
@@ -205,7 +209,7 @@ class Minimap:
                index >= indices[current.dlvl] and \
                index < indices.get(current.dlvl + 1, len(buf) - 1):
                 plane.chgat(
-                    real_y_offset + index + 1, 
+                    real_y_offset + index, 
                     real_x_offset + 1, 
                     len(line) - 2, 
                     curses.A_BOLD | color(curses.COLOR_GREEN)
@@ -216,46 +220,27 @@ class Minimap:
             x_offset, x_offset + len(buf[0]), 
             y_offset, color, drawn
         )
+
+    def _draw_branch_to(self, branch, current, plane,
+                        x_offset, y_offset, color, drawn, left=False):
+        self._draw_branch(branch, current, plane,
+                          x_offset, y_offset, color,
+                          drawn, True, left)
 
     def _draw_branch_at(self, branch, current, plane, 
                         x_offset, y_offset, color, drawn, left=False):
-        drawn.update({branch.name(): True})
-
-        indices, buf = self.unconnected_branch_as_buffer_with_indices(
-            branch.name(), branch
-        )
-
-        if left:
-            real_x_offset = x_offset - len(buf[0])
-        else:
-            real_x_offset = x_offset
-
-        for index, line in enumerate(buf):
-            plane.addstr(y_offset + index, x_offset, line)
-
-            # Hilight the current level in bold green text if it's in this
-            # branch. 
-            if current.branch == branch.name() and \
-               index >= indices[current.dlvl] and \
-               index < indices.get(current.dlvl + 1, len(buf) - 1):
-                plane.chgat(
-                    y_offset + index, 
-                    real_x_offset + 1, 
-                    len(line) - 2, 
-                    curses.A_BOLD | color(curses.COLOR_GREEN)
-                )
-
-        self._draw_sub_branches(
-            branch, current, plane, indices, 
-            x_offset, x_offset + len(buf[0]), 
-            y_offset, color, drawn
-        )
+        self._draw_branch(branch, current, plane,
+                          x_offset, y_offset, color,
+                          drawn, False, left)
 
     def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
-        self._draw_branch_at(
+        bounds = self._draw_branch_at(
             dungeon.main(), dungeon.current, plane, 
             x_offset, y_offset, color, {}
         )
+
+        #min_x, max_x, min_y, max_y, current_lvl_x, current_lvl_y = bounds
+        #return (min_x, max_x, min_y, max_y, current_lvl_x, current_lvl_y)
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
