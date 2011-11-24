@@ -195,6 +195,7 @@ class Noobhack:
         match = re.search("Restoring save file...", data)
         if match is not None:
             self.reloading = True
+            self.output_proxy.unregister(self._restore_game_checker)
 
     def load(self):
         if os.path.exists(self.save_file):
