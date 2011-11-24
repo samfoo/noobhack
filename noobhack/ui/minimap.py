@@ -153,7 +153,7 @@ class Minimap:
 
     def _draw_sub_branches(self, parent, current, plane, 
                            indices, left_x_offset, right_x_offset, y_offset, 
-                           color, drawn, left=False):
+                           color, drawn, left=False, alternate=True):
         for i, sub_branch in enumerate(parent.sub_branches()):
             if not drawn.has_key(sub_branch.name()):
                 drawn.update({sub_branch.name(): True})
@@ -169,7 +169,9 @@ class Minimap:
                     draw = self._draw_branch_to
                     connect = self._draw_up_connecter
 
-                left = left or (i % 2) == 1
+                if alternate:
+                    left = left or (i % 2) == 1
+
                 if left:
                     connect_offset = x_offset = left_x_offset - 3
                 else:
@@ -178,12 +180,27 @@ class Minimap:
 
                 connect_at = y_offset + indices[branch_junction.dlvl] - 1
                 draw(sub_branch, current, plane, 
-                     x_offset, connect_at, color, drawn, left or (i % 2) == 1)
+                     x_offset, connect_at, color, 
+                     drawn, left, False)
                 connect(plane, connect_offset, connect_at + 1, left)
+
+    def _draw_branch_to(self, branch, current, plane,
+                        x_offset, y_offset, color, drawn, 
+                        left=False, alternate=True):
+        self._draw_branch(branch, current, plane,
+                          x_offset, y_offset, color,
+                          drawn, True, left, alternate)
+
+    def _draw_branch_at(self, branch, current, plane, 
+                        x_offset, y_offset, color, drawn, 
+                        left=False, alternate=True):
+        self._draw_branch(branch, current, plane,
+                          x_offset, y_offset, color,
+                          drawn, False, left, alternate)
 
     def _draw_branch(self, branch, current, plane, 
                      x_offset, y_offset, color, drawn,
-                     to=False, left=False):
+                     to=False, left=False, alternate=True):
         drawn.update({branch.name(): True})
 
         indices, buf = self.unconnected_branch_as_buffer_with_indices(
@@ -217,21 +234,9 @@ class Minimap:
 
         self._draw_sub_branches(
             branch, current, plane, indices, 
-            x_offset, x_offset + len(buf[0]), 
-            y_offset, color, drawn
+            real_x_offset, real_x_offset + len(buf[0]),
+            real_y_offset, color, drawn, left, alternate
         )
-
-    def _draw_branch_to(self, branch, current, plane,
-                        x_offset, y_offset, color, drawn, left=False):
-        self._draw_branch(branch, current, plane,
-                          x_offset, y_offset, color,
-                          drawn, True, left)
-
-    def _draw_branch_at(self, branch, current, plane, 
-                        x_offset, y_offset, color, drawn, left=False):
-        self._draw_branch(branch, current, plane,
-                          x_offset, y_offset, color,
-                          drawn, False, left)
 
     def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
         bounds = self._draw_branch_at(
