@@ -99,13 +99,14 @@ class Minimap:
     def get_plane_for_map(self, levels):
         # Hopefully 10 lines per dungeon level on average is large enough...
         max_height = max(size()[0], len(levels) * 10)
-        max_width = size()[1]
+        max_width = size()[1] * 2
         return curses.newpad(max_height, max_width)
 
     def loop_and_listen_for_scroll_events(self, window, plane, close):
         scroll_y = 0
+        scroll_x = plane.getmaxyx()[1] / 2 - size()[0] / 2
         while True:
-            plane.noutrefresh(scroll_y, 0, 0, 0, size()[0] - 1, size()[1] - 1)
+            plane.noutrefresh(scroll_y, scroll_x, 0, 0, size()[0] - 1, size()[1] - 1)
 
             # For some reason, curses *really* wants the cursor to be below to the
             # main window, no matter who used it last. Regardless, just move it
@@ -120,7 +121,11 @@ class Minimap:
             if key == "k":
                 scroll_y = max(scroll_y - 1, 0) 
             elif key == "j":
-                scroll_y = min(scroll_y + 1, size()[0])
+                scroll_y = min(scroll_y + 1, plane.getmaxyx()[0])
+            elif key == "h":
+                scroll_x = max(scroll_x - 1, 0)
+            elif key == "l":
+                scroll_x = min(scroll_x + 1, plane.getmaxyx()[1]) 
             elif key == close or key == "\x1b":
                 break
 
@@ -254,5 +259,5 @@ class Minimap:
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
-        self.draw_dungeon(dungeon, plane, size()[0] / 2 + 10, 15)
+        self.draw_dungeon(dungeon, plane, plane.getmaxyx()[1] / 2, 15)
         self.loop_and_listen_for_scroll_events(window, plane, close)
