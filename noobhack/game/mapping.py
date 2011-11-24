@@ -125,7 +125,8 @@ class Map:
         peers = [l for l 
                  in self.levels 
                  if l.dlvl == self.current.dlvl 
-                    and l != self.current]
+                    and l != self.current
+                    and l.branch == "not sure"]
 
         assert len(peers) == 0 or len(peers) == 1
         for p in peers: p.change_branch_to("main")
