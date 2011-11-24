@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -u
 
 import os
 import re
@@ -293,13 +293,13 @@ class Noobhack:
             [self.nethack.fileno(), sys.stdin.fileno()], [], []
         )[0]
 
-        if self.nethack.fileno() in available:
-            # Do our display logic.
-            self.output_proxy.proxy()
-
         if sys.stdin.fileno() in available:
             # Do our input logic.
             self.input_proxy.proxy()
+
+        if self.nethack.fileno() in available:
+            # Do our display logic.
+            self.output_proxy.proxy()
 
     def run(self, window):
         """
