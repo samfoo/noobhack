@@ -167,7 +167,7 @@ class Brain:
                     dispatcher.dispatch("shop-type", t)
 
     def _dispatch_move_event(self):
-        if self.term.cursor() != self.prev_cursor and self.cursor_is_on_player():
+        if self.cursor_is_on_player():
             dispatcher.dispatch("move", self.term.cursor())
 
     def cursor_is_on_player(self):
