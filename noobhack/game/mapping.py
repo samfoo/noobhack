@@ -122,6 +122,14 @@ class Map:
             return None
 
     def change_branch_to(self, branch):
+        peers = [l for l 
+                 in self.levels 
+                 if l.dlvl == self.current.dlvl 
+                    and l != self.current]
+
+        assert len(peers) == 0 or len(peers) == 1
+        for p in peers: p.change_branch_to("main")
+
         self.current.change_branch_to(branch)
 
     def is_there_a_level_at(self, branch, dlvl):
@@ -144,9 +152,6 @@ class Map:
             # If the existing level has stairs to it, and we're at a different
             # location than those stairs then the stairs at our current 
             # location *must* be a different level.
-            other_level = has_stairs_to_other_lower[0]
-            other_level.change_branch_to("not sure")
-
             new_level = Level(to_dlvl, "not sure")
             self._add(new_level, to_pos)
             self.current = new_level

@@ -2,6 +2,8 @@ from flexmock import flexmock
 
 from noobhack.game.mapping import Map, Level
 
+from tests.utils import level_chain
+
 def level(dlvl):
     return flexmock(Level(dlvl))
 
@@ -129,25 +131,20 @@ def test_switching_a_branch_changes_the_current_level_to_a_new_branch():
     m.current = second
     m.change_branch_to("mines")
 
-def test_that_when_there_are_two_levels_on_seemingly_the_same_branch_both_levels_branch_is_changed_to_not_sure():
-    first = level(1)
-    m = Map(first, 1, 1)
-
-    main_branch_second = flexmock(Level(2))
-    first.add_stairs(main_branch_second, (1, 1))
-    main_branch_second.add_stairs(first, (2, 2))
-    m.levels = set([first, main_branch_second])
-
-    # Now the first level is linked to the second level (1, 1) -> (2, 2). Now 
-    # travel down to the second level of a different branch (5, 5) -> (5, 5).
-    mines_second = flexmock(Level(2))
-    flexmock(Level).new_instances(mines_second).once
-    mines_second.should_receive("add_stairs").with_args(first, (5, 5)).once
-    first.should_receive("add_stairs").with_args(mines_second, (5, 5)).once
-
-    m.move(5, 5)
-    main_branch_second.should_receive("change_branch_to").with_args("not sure").once
-    m.travel_by_stairs(2, (5, 5))
+def test_moving_down_main_then_up_one_and_down_to_the_mines_before_mines_are_identified():
+    levels = level_chain(3, "main")
+    m = Map(levels[-1], 3, 2)
+    m.levels = set(levels)
+    m.travel_by_stairs(2, (2, 3))
 
     assert len(m.levels) == 3
 
+    m.move(4, 4)
+    m.travel_by_stairs(3, (4, 4))
+
+    assert len(m.levels) == 4
+
+    m.change_branch_to("mines")
+
+    assert len([l for l in m.levels if l.branch == "main"]) == 3
+    assert len([l for l in m.levels if l.branch == "mines"]) == 1
