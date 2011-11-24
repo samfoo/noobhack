@@ -1,0 +1,32 @@
+@import url(http://fonts.googleapis.com/css?family=EB+Garamond);
+@import url(http://fonts.googleapis.com/css?family=Marck+Script);
+
+div#header {
+    margin-left:auto;
+    margin-right:auto;
+}
+
+h1#title {
+    text-align: center;
+    font-family: 'EB Garamond', serif;
+    font-size: 3.5em;
+}
+
+h2#subtitle {
+    text-align: center;
+    font-family: 'Marck Script', cursive;
+    font-weight: normal;
+    margin-top: -2.75em;
+    margin-left: 6em;
+}
+
+h2#subtitle span {
+    font-family: serif;
+}
+
+div#footnote {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #ccc;
+}
