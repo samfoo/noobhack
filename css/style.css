@@ -79,6 +79,7 @@ div.endorsement .message {
     margin: 0;
     padding: 1em 0;
     text-align:justify;
+    text-decoration: none;
 }
 
 .quote-start, .quote-end {
@@ -94,7 +95,7 @@ div.endorsement .message {
 }
 
 .quote-end {
-    margin-top: -.35em;
     float: right;
     margin-left: 0.1em;
+    margin-top: -0.83em;
 }
