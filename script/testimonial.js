@@ -1,17 +1,10 @@
 $(document).ready(function() {
-    $("div.endorsement").hide();
+    var $testimonials = $('.endorsement');
+    $testimonials.filter(':first').show();
 
-    var i = 0;
-    var testimonials = $("div.endorsement");
-    var current = $(testimonials.get(0));
-    current.show();
-
-    function show_random_testimonial() {
-        i += 1;
-        current.slideDown();
-        current = $(testimonials.get(i % testimonials.length));
-        current.slideUp();
-    }
-
-    setInterval(show_random_testimonial, 3000)
+    setInterval(function() {
+        var $next = $testimonials.filter(':visible').hide().next('.endorsement');
+        if ($next.length === 0) $next = $testimonials.filter(':first');
+        $next.show();
+    }, 5000);
 });

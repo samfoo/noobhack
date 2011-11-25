@@ -73,8 +73,13 @@ p.summary:first-letter {
     line-height: 1em;
 }
 
+div#endorsements {
+    height: 275px;
+    overflow: hidden;
+}
+
 div.endorsement {
-    visible: hidden; 
+    display: none;
 }
 
 div.endorsement .avatar {
