@@ -25,8 +25,76 @@ h2#subtitle span {
 }
 
 div#footnote {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     right: 0;
     color: #ccc;
+}
+
+div#container {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.25em;
+    margin: 0 auto;
+    width: 600px;
+}
+
+div#container h1 {
+    margin: 0;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+div#container h2 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #bbb;
+    text-align: center;
+}
+
+div#container a {
+    text-decoration: none;
+}
+
+div#container hr {
+    margin: 2em 4em;
+}
+
+p.summary {
+    font-family: 'EB Garamond', serif;
+    text-align: justify;
+}
+
+p.summary:first-letter {
+    font-size: 2em;
+    line-height: 1em;
+}
+
+div.endorsement .avatar {
+    float: left;
+}
+
+div.endorsement .message {
+    float: right;
+    width: 450px;
+    margin: 0;
+    padding: 1em 0;
+    text-align:justify;
+}
+
+.quote-start, .quote-end {
+    color: #ddd;
+    font-size: 8em;
+}
+
+.quote-start {
+    margin-top: -.55em;
+    margin-bottom: -0.75em;
+    margin-right: 0.1em;
+    float: left;
+}
+
+.quote-end {
+    margin-top: -.35em;
+    float: right;
+    margin-left: 0.1em;
 }
