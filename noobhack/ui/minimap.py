@@ -98,14 +98,18 @@ class Minimap:
 
     def get_plane_for_map(self, levels):
         # Hopefully 10 lines per dungeon level on average is large enough...
-        max_height = max(size()[0], len(levels) * 10)
-        max_width = size()[1] * 2
+        max_height = size()[0] * 3  + len(levels) * 10
+        max_width = size()[1] * 3
         return curses.newpad(max_height, max_width)
 
-    def loop_and_listen_for_scroll_events(self, window, plane, close):
-        scroll_y = 0
-        scroll_x = plane.getmaxyx()[1] / 2 - size()[0] / 2
+    def loop_and_listen_for_scroll_events(self, window, plane, bounds, close):
+        left, right, top, bottom = bounds
+        scroll_y = max(0, top - 5)
+        scroll_x = plane.getmaxyx()[1] / 2 - size()[1] / 2
         while True:
+            sys.stderr.write("bounds %r\n" % (bounds,))
+            sys.stderr.write("screen (%s, %s)\n" % size())
+            sys.stderr.write("scroll (%s, %s)\n" % (scroll_x, scroll_y))
             plane.noutrefresh(scroll_y, scroll_x, 0, 0, size()[0] - 1, size()[1] - 1)
 
             # For some reason, curses *really* wants the cursor to be below to the
@@ -118,16 +122,29 @@ class Minimap:
 
             # Wait around until we get some input.
             key = sys.stdin.read(1)
-            if key == "k":
-                scroll_y = max(scroll_y - 1, 0) 
-            elif key == "j":
-                scroll_y = min(scroll_y + 1, plane.getmaxyx()[0])
-            elif key == "h":
-                scroll_x = max(scroll_x - 1, 0)
-            elif key == "l":
-                scroll_x = min(scroll_x + 1, plane.getmaxyx()[1]) 
-            elif key == close or key == "\x1b":
+            if key == close or key == "\x1b":
                 break
+
+            movements = {
+                "k": (0, -1), "j": (0, 1), "h": (-1, 0), "l": (1, 0),
+                "y": (-1, -1), "u": (1, -1), "b": (-1, 1), "n": (1, 1)
+            }
+
+            move_x, move_y = movements.get(key.lower(), (0, 0))
+
+            if key.isupper():
+                move_x *= 5
+                move_y *= 5
+
+            if move_y > 0:
+                scroll_y = min(scroll_y + move_y, bottom - 5)
+            else:
+                scroll_y = max(scroll_y + move_y, top - size()[0] + 5) 
+
+            if move_x > 0:
+                scroll_x = min(scroll_x + move_x, right - 20) 
+            else:
+                scroll_x = max(scroll_x + move_x, left - size()[1] + 20)
 
     def _draw_down_connecter(self, plane, x_offset, y_offset, left=False):
         if left:
@@ -273,5 +290,5 @@ class Minimap:
 
     def display(self, dungeon, window, close="`"):
         plane = self.get_plane_for_map(dungeon.main())
-        self.draw_dungeon(dungeon, plane, plane.getmaxyx()[1] / 2, 15)
-        self.loop_and_listen_for_scroll_events(window, plane, close)
+        bounds = self.draw_dungeon(dungeon, plane, plane.getmaxyx()[1] / 2, size()[0])
+        self.loop_and_listen_for_scroll_events(window, plane, bounds, close)
