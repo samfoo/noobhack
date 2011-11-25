@@ -73,6 +73,10 @@ p.summary:first-letter {
     line-height: 1em;
 }
 
+div.endorsement {
+    visible: hidden; 
+}
+
 div.endorsement .avatar {
     float: left;
 }
