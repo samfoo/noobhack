@@ -1,6 +1,10 @@
 @import url(http://fonts.googleapis.com/css?family=EB+Garamond);
 @import url(http://fonts.googleapis.com/css?family=Marck+Script);
 
+.clear {
+    clear: both;
+}
+
 div#header {
     margin-left:auto;
     margin-right:auto;
@@ -77,9 +81,12 @@ div.endorsement .message {
     float: right;
     width: 450px;
     margin: 0;
-    padding: 1em 0;
     text-align:justify;
-    text-decoration: none;
+}
+
+div.endorsement .attribution {
+    font-weight: bold;
+    color: rgb(170, 0, 0);
 }
 
 .quote-start, .quote-end {
@@ -88,7 +95,7 @@ div.endorsement .message {
 }
 
 .quote-start {
-    margin-top: -.55em;
+    margin-top: -0.45em;
     margin-bottom: -0.75em;
     margin-right: 0.1em;
     float: left;
@@ -97,5 +104,5 @@ div.endorsement .message {
 .quote-end {
     float: right;
     margin-left: 0.1em;
-    margin-top: -0.83em;
+    margin-top: -0.4em;
 }
