@@ -81,7 +81,7 @@ def test_drawing_a_dungeon_with_one_branch_properly_computes_bounds():
     window = newpad() 
     m = Minimap()
     dungeon = fixed_graph(levels)
-    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)
+    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)[:-2]
 
     assert left == 0
     assert right == 27
@@ -93,7 +93,7 @@ def test_drawing_a_dungeon_with_one_branch_offset_properly_computes_bounds():
     window = newpad() 
     m = Minimap()
     dungeon = fixed_graph(levels)
-    left, right, top, bottom = m.draw_dungeon(dungeon, window, 10, 10, get_color)
+    left, right, top, bottom = m.draw_dungeon(dungeon, window, 10, 10, get_color)[:-2]
 
     assert left == 10
     assert right == 37
@@ -107,7 +107,7 @@ def test_drawing_a_dungeon_with_multiple_branches_properly_computes_bounds():
     window = newpad() 
     m = Minimap()
     dungeon = fixed_graph(levels)
-    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)
+    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)[:-2]
 
     assert left == 0
     assert right == 57
@@ -125,9 +125,44 @@ def test_drawing_a_dungeon_with_multiple_sub_branches_properly_computes_bounds()
     window = newpad() 
     m = Minimap()
     dungeon = fixed_graph(levels + more_main)
-    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)
+    left, right, top, bottom = m.draw_dungeon(dungeon, window, 0, 0, get_color)[:-2]
 
     assert left == 0
     assert right == 87
     assert top == 0
     assert bottom == 16
+
+def test_a_current_level_in_a_single_branch_is_properly_bounded():
+    levels = level_chain(3, "main")
+    window = newpad() 
+    m = Minimap()
+    dungeon = fixed_graph(levels)
+    x, y = m.draw_dungeon(dungeon, window, 0, 0, get_color)[-2:]
+
+    assert x == 0
+    assert y == 3
+
+def test_a_current_level_in_the_middle_of_a_single_branch_is_properly_bounded():
+    levels = level_chain(3, "main")
+    window = newpad() 
+    m = Minimap()
+    dungeon = fixed_graph(levels)
+    dungeon.current = levels[1]
+    x, y = m.draw_dungeon(dungeon, window, 0, 0, get_color)[-2:]
+
+    assert x == 0
+    assert y == 6 
+
+def test_a_current_level_on_a_second_branch_is_properly_bounded():
+    levels = level_chain(3, "main")
+    levels[1].change_branch_to("mines")
+
+    window = newpad() 
+    m = Minimap()
+    dungeon = fixed_graph(levels)
+    dungeon.current = levels[1]
+    x, y = m.draw_dungeon(dungeon, window, 0, 0, get_color)[-2:]
+
+    assert x == 30
+    assert y == 5
+

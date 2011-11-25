@@ -103,13 +103,14 @@ class Minimap:
         return curses.newpad(max_height, max_width)
 
     def loop_and_listen_for_scroll_events(self, window, plane, bounds, close):
-        left, right, top, bottom = bounds
-        scroll_y = max(0, top - 5)
-        scroll_x = plane.getmaxyx()[1] / 2 - size()[1] / 2
+        left, right, top, bottom, current_lvl_x, current_lvl_y = bounds
+
+        mid_screen_x = size()[1] / 2
+        mid_screen_y = size()[0] / 2
+        scroll_y = current_lvl_y - mid_screen_y
+        scroll_x = current_lvl_x - mid_screen_x
+
         while True:
-            sys.stderr.write("bounds %r\n" % (bounds,))
-            sys.stderr.write("screen (%s, %s)\n" % size())
-            sys.stderr.write("scroll (%s, %s)\n" % (scroll_x, scroll_y))
             plane.noutrefresh(scroll_y, scroll_x, 0, 0, size()[0] - 1, size()[1] - 1)
 
             # For some reason, curses *really* wants the cursor to be below to the
@@ -172,7 +173,7 @@ class Minimap:
                            indices, left_x_offset, right_x_offset, y_offset, 
                            color, drawn, left=False, alternate=True):
         left_x, right_x, top_y, bottom_y = plane.getmaxyx()[1], 0, plane.getmaxyx()[0], 0
-        bounds = (left_x, right_x, top_y, bottom_y)
+        bounds = (left_x, right_x, top_y, bottom_y, 0, 0)
 
         for i, sub_branch in enumerate(parent.sub_branches()):
             if not drawn.has_key(sub_branch.name()):
@@ -208,6 +209,8 @@ class Minimap:
                     max(sub_bounds[1], bounds[1]),
                     min(sub_bounds[2], bounds[2]),
                     max(sub_bounds[3], bounds[3]),
+                    max(sub_bounds[4], bounds[4]),
+                    max(sub_bounds[5], bounds[5]),
                 )
 
                 connect(plane, connect_offset, connect_at + 1, left)
@@ -267,7 +270,14 @@ class Minimap:
         top_y = real_y_offset
         bottom_y = real_y_offset + len(buf)
 
-        bounds = (left_x, right_x, top_y, bottom_y)
+        if current.branch == branch.name():
+            current_lvl_x = real_x_offset
+            current_lvl_y = real_y_offset + indices[current.dlvl]
+        else:
+            current_lvl_x = left_x 
+            current_lvl_y = top_y 
+
+        bounds = (left_x, right_x, top_y, bottom_y, current_lvl_x, current_lvl_y)
 
         sub_bounds = self._draw_sub_branches(
             branch, current, plane, indices, 
@@ -280,6 +290,8 @@ class Minimap:
             max(sub_bounds[1], bounds[1]),
             min(sub_bounds[2], bounds[2]),
             max(sub_bounds[3], bounds[3]),
+            max(sub_bounds[4], bounds[4]),
+            max(sub_bounds[5], bounds[5]),
         )
 
     def draw_dungeon(self, dungeon, plane, x_offset, y_offset, color=get_color):
