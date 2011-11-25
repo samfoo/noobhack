@@ -89,7 +89,7 @@ div.endorsement .avatar {
 div.endorsement .message {
     float: right;
     width: 450px;
-    margin: 0;
+    margin: 1em 0 0 0;
     text-align:justify;
 }
 
@@ -104,7 +104,7 @@ div.endorsement .attribution {
 }
 
 .quote-start {
-    margin-top: -0.45em;
+    margin-top: -0.35em;
     margin-bottom: -0.75em;
     margin-right: 0.1em;
     float: left;
@@ -113,5 +113,5 @@ div.endorsement .attribution {
 .quote-end {
     float: right;
     margin-left: 0.1em;
-    margin-top: -0.4em;
+    margin-top: -0.6em;
 }
