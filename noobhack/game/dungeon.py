@@ -162,8 +162,6 @@ class Dungeon:
                                       self._shop_type_handler)
         dispatcher.add_event_listener("level-teleport",
                                       self._level_teleport_handler)
-        dispatcher.add_event_listener("branch-port",
-                                      self._branch_port_handler)
         dispatcher.add_event_listener("trap-door", 
                                       self._level_teleport_handler)
         dispatcher.add_event_listener("move", self._map_move_handler)
@@ -198,11 +196,6 @@ class Dungeon:
     def _level_teleport_handler(self, _):
         self.went_through_lvl_tel = True 
 
-    def _branch_port_handler(self, _, branch):
-        # TODO: Implement
-        #self.graph.branch_port(branch)
-        pass
-
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:
             # This seems like it's probably an error. The brain, or whoever is
@@ -220,4 +213,5 @@ class Dungeon:
         self.level = level
 
     def current_level(self):
+        """ Return the level that the player is currently on """
         return self.graph.current

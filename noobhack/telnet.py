@@ -14,26 +14,36 @@ class Telnet:
         self.conn = None
 
     def write(self, buf):
+        """ Proxy input to the telnet process' stdin. """
         self.conn.get_socket().send(buf)
 
     def read(self):
+        """ 
+        Proxy output from the telnet process' stdout. This shouldn't block 
+        """
         try:
             return self.conn.read_very_eager()
-        except EOFError, e:
+        except EOFError, ex:
             # The telnet connection closed.
-            raise IOError(e)
+            raise IOError(ex)
 
     def open(self):
+        """ Open a connection to a telnet server.  """
+
         self.conn = telnetlib.Telnet(self.host, self.port)
         self.conn.set_option_negotiation_callback(self.set_option)
 
     def close(self):
+        """ Close the connection. """
         self.conn.close()
 
     def fileno(self):
+        """ Return the fileno of the socket.  """
         return self.conn.get_socket().fileno()
 
     def set_option(self, socket, command, option):
+        """ Configure our telnet options. This is magic. Don't touch it. """
+
         if command == telnetlib.DO and option == "\x18":
             # Promise we'll send a terminal type
             socket.send("%s%s\x18" % (telnetlib.IAC, telnetlib.WILL))

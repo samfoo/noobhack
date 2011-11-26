@@ -1,13 +1,8 @@
 import re
-import sys
-import fcntl
 import curses 
-import struct
-import locale
-import termios
 
 from noobhack.game import shops, status
-from noobhack.ui.common import *
+from noobhack.ui.common import get_color
 
 class Helper:
     """

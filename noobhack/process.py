@@ -23,6 +23,10 @@ class Local:
         self.pid = None
 
     def open(self):
+        """
+        Fork a child nethack process into a pty and setup its stdin and stdout
+        """
+
         (self.pid, self.pipe) = os.forkpty()
 
         if self.pid == 0:
@@ -53,36 +57,50 @@ class Local:
             self.resize_child()
 
     def _close(self, *_):
+        """
+        Raise an exception signaling that the child process has finished.
+        Whoever catches the exception is responsible for flushing the child's 
+        stdout.
+        """
+
         raise ProcError(self.stdout)
 
     def resize_child(self, *_):
+        """
+        Try to send the right signals to the child that the terminal has
+        changed size.
+        """
+
         # Get the host app's terminal size first.
         parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
         # Now set the child (conduit) app's size properly
         fcntl.ioctl(self.stdin, termios.TIOCSWINSZ, parent)
 
     def fileno(self):
-        """
-        Return the fileno of the pipe.
-        """
+        """ Return the fileno of the pipe.  """
 
         return self.pipe
 
     def close(self):
-        """
-        Kill our child process. Cuban hit squad.
-        """
+        """ Kill our child process. Cuban hit squad.  """
 
         os.kill(self.pid, signal.SIGTERM)
 
     def write(self, buf):
+        """ Proxy input to the nethack process' stdin.  """
         self.stdin.write(buf)
 
     def read(self):
+        """ 
+        Proxy output from the nethack process' stdout. This shouldn't block 
+        """
         buf = ""
         while self.data_is_available(): 
             buf += self.stdout.read(1)
         return buf
 
     def data_is_available(self):
+        """ 
+        Return a non-empty list when the nethack process has data to read 
+        """
         return select.select([self.stdout], [], [], 0) == ([self.stdout], [], [])

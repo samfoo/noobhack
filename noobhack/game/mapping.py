@@ -1,4 +1,10 @@
 class Branch:
+    """ 
+    Given a level, provide some methods to treat that level's dungeon
+    branch as a distinct entity. Probably most importantly, Branch's are iters
+    that iterate from the top (lowest dlvl) to the bottom (highest dlvl).
+    """
+
     def __init__(self, junction):
         self.junction = junction
         self.current = self.start = self.find_top(junction)
@@ -10,6 +16,11 @@ class Branch:
         return len([l for l in self])
 
     def find_top(self, level):
+        """
+        Given a level, find the uppermost parent that still belongs to the same
+        branch
+        """
+
         ups = [l for l 
                in level.stairs.values()
                if l.dlvl < level.dlvl
@@ -20,12 +31,14 @@ class Branch:
             return self.find_top(ups[0])
 
     def name(self):
+        """ The name of the branch (e.g. main, mines, sokoban, etc) """
         return self.start.branch
 
     def sub_branches(self):
-        # Check me out!
-        # I'm probably not performant. Oh well...
-        this_branch = self.start.branch
+        """
+        Return all branches that are connected to this one (whether they're 
+        parents or children)
+        """
 
         # TODO: Can a level have connections to more than one dungeon branch?
         roots = [l.branches()[0] for l

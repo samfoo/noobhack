@@ -1,10 +1,5 @@
-import re
 import sys
-import fcntl
 import curses 
-import struct
-import locale
-import termios
 
 from noobhack.ui.common import get_color, size
 

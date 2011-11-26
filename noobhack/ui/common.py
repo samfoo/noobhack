@@ -1,9 +1,7 @@
-import re
 import sys
 import fcntl
 import curses 
 import struct
-import locale
 import termios
 
 # Map vt102 colors to curses colors. Notably nethack likes to use `brown`
