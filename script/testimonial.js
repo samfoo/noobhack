@@ -1,5 +1,6 @@
 $(document).ready(function() {
     var $testimonials = $('.endorsement');
+    $testimonials.sort(function() {return 0.5 - Math.random()});
     $testimonials.filter(':first').show();
 
     setInterval(function() {
