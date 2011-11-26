@@ -173,7 +173,10 @@ class Brain:
             dispatcher.dispatch("move", self.term.cursor())
 
     def cursor_is_on_player(self):
-        return self.char_at(*self.term.cursor()) == "@"
+        first = self.term.display[0].translate(ibm)
+        return "To what position do you want to be teleported?" not in first and \
+                "Please move the cursor to an unknown object." not in first and \
+                self.char_at(*self.term.cursor()) != " "
 
     def char_at(self, x, y):
         row = self.term.display[y].translate(ibm)
