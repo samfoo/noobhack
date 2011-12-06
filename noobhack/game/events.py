@@ -36,9 +36,6 @@ class Dispatcher:
         Dispatch an event.
         """
 
-        import sys
-        sys.stderr.write("%s %r\n" % (event, args))
-
         for listener in self.listeners.get(event, []):
             listener(event, *args)
 
