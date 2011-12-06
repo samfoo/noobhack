@@ -33,7 +33,12 @@ You can also open the map mode by typing the backtick key '\`' and dismiss it ag
 but explanations are boring, show me screenshots!
 -------------------------------------------------
 
-(TODO: Add screenshots)
+![Map](http://samfoo.github.com/noobhack/images/screenshots/map.png)
+![Map 2](http://samfoo.github.com/noobhack/images/screenshots/map-2.png)
+![DEC Graphics](http://samfoo.github.com/noobhack/images/screenshots/dec-graphics.png)
+![Price ID 2](http://samfoo.github.com/noobhack/images/screenshots/price-id-2.png)
+![Price ID Selling](http://samfoo.github.com/noobhack/images/screenshots/price-id-sell.png)
+![Price ID](http://samfoo.github.com/noobhack/images/screenshots/price-id.png)
 
 does noobhack work on public servers like nethack.alt.org (NAO)?
 ----------------------------------------------------------
