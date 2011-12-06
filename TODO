@@ -1,7 +1,4 @@
-* Full support for all dungeon branches, both detection and graphing.
-* Support for branchporting.
-* Installation documentation and confirmed testing that it works as a script
-  installed somewhere system accessible.
-* Update the readme to reflect the new changes.
+* Full support for all dungeon branch detection
+* Working branch porting.
 * Determine if the player is a "sucker" when price id'ing
 * When the player is below the overlay, move the overlay up top
