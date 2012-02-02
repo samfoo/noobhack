@@ -1,5 +1,6 @@
 import os
 import telnetlib
+from struct import pack
 
 class Telnet:
     """
@@ -8,10 +9,11 @@ class Telnet:
     possible (grumble, grumble, grumble).
     """
 
-    def __init__(self, host="nethack.alt.org", port=23):
+    def __init__(self, host="nethack.alt.org", port=23,size=(80,24)):
         self.host = host
         self.port = port
         self.conn = None
+        self.size = size
 
     def write(self, buf):
         """ Proxy input to the telnet process' stdin. """
@@ -32,6 +34,7 @@ class Telnet:
 
         self.conn = telnetlib.Telnet(self.host, self.port)
         self.conn.set_option_negotiation_callback(self.set_option)
+        self.conn.get_socket().sendall(pack(">ccc", telnetlib.IAC, telnetlib.WILL, telnetlib.NAWS))
 
     def close(self):
         """ Close the connection. """
@@ -53,7 +56,7 @@ class Telnet:
         elif command == telnetlib.DO and option == "\x1f":
             # And we should probably tell the server we will send our window
             # size
-            socket.send("%s%s\x1f" % (telnetlib.IAC, telnetlib.WILL))
+            socket.sendall(pack(">cccHHcc", telnetlib.IAC, telnetlib.SB, telnetlib.NAWS, self.size[1]-1, self.size[0], telnetlib.IAC, telnetlib.SE))
         elif command == telnetlib.DO and option == "\x20":
             # Tell the server to sod off, we won't send the terminal speed
             socket.send("%s%s\x20" % (telnetlib.IAC, telnetlib.WONT))
