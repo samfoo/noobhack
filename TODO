@@ -1,3 +1,20 @@
+Noobhack 0.4
+============
+
+* Allow generic plugins.
+    * Example pluggable system for color coding.
+* Overlaying known maps on screen when detected.
+* Unify brain and dungeon. The code is confusing.
+* Extend item identification help.
+* Track spellbook read count
+* Track spell learned turn
+* Monitor pray safety
+* Input macros (elbereth)
+* Smash all the grid bugzeseseses
+
+Misc.
+=====
+
 * Full support for all dungeon branch detection
 * Working branch porting.
 * Determine if the player is a "sucker" when price id'ing
