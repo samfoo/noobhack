@@ -56,7 +56,7 @@ class Telnet:
         elif command == telnetlib.DO and option == "\x1f":
             # And we should probably tell the server we will send our window
             # size
-            socket.sendall(pack(">cccHHcc", telnetlib.IAC, telnetlib.SB, telnetlib.NAWS, self.size[1]-1, self.size[0], telnetlib.IAC, telnetlib.SE))
+            socket.sendall(pack(">cccHHcc", telnetlib.IAC, telnetlib.SB, telnetlib.NAWS, self.size[1], self.size[0], telnetlib.IAC, telnetlib.SE))
         elif command == telnetlib.DO and option == "\x20":
             # Tell the server to sod off, we won't send the terminal speed
             socket.send("%s%s\x20" % (telnetlib.IAC, telnetlib.WONT))

@@ -142,7 +142,7 @@ class Noobhack:
         # deal with it rather than hunt forever trying to figure out what I'm
         # doing wrong with curses.
         rows, cols = size()
-        self.term = vt102.screen((rows-1, cols), self.options.encoding)
+        self.term = vt102.screen((rows, cols), self.options.encoding)
         self.term.attach(self.stream)
         self.output_proxy.register(self.stream.process)
 
