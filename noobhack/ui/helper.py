@@ -261,13 +261,13 @@ class Helper:
 
         if self._things_to_buy_identify() is not None:
             item, price = self._things_to_buy_identify()
-            items = shops.buy_identify(self.manager.player.charisma(), item, price, self.manager.sucker())
+            items = shops.buy_identify(self.player.charisma(), item, price, self.player.sucker())
 
             identify_frame = self._identify_box(items)
             identify_frame.overwrite(window)
         elif self._things_to_sell_identify() is not None:
             item, price = self._things_to_sell_identify()
-            items = shops.sell_identify(item, price, self.manager.sucker())
+            items = shops.sell_identify(item, price, self.player.sucker())
 
             identify_frame = self._identify_box(items)
             identify_frame.overwrite(window)

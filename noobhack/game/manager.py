@@ -23,15 +23,6 @@ class Manager:
         self.player.listen()
         self.dungeon.listen()
 
-    def sucker(self):
-        """
-        Return whether or not the player is considered a 'sucker'. A level 14
-        or lower tourists or anyone wearing a shirt with no armor or cloak over
-        it. Confers a 33% penalty to the price of an object. Necessary when
-        price identifying.
-        """
-        return False
-
     def _level_feature_events(self, data):
         match = re.search("There is an altar to .* \\((\\w+)\\) here.", data)
         if match is not None:
