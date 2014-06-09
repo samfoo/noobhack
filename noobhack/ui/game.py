@@ -13,20 +13,15 @@ class Game:
         self.term = term
         self.code = locale.getpreferredencoding()
 
-    def _redraw_row(self, window, row):
-        """
-        Draw a single game-row in the curses display window. This means writing
-        the text from the in-memory terminal out and setting the color/style
-        attributes appropriately.
-        """
-        row_c = self.term.display[row].encode(self.code)
+    def _write_text(self, window, row, row_str):
         max_y, max_x = window.getmaxyx()
         if row == max_y -1:
-           window.addstr(row, 0, row_c[:-1])
-           window.insch(row_c[-1])
+           window.addstr(row, 0, row_str[:-1])
+           window.insch(row_str[-1])
         else:
-           window.addstr(row, 0, row_c)
+           window.addstr(row, 0, row_str)
 
+    def _write_attrs(self, window, row):
         row_a = self.term.attributes[row]
         for col, (char_style, foreground, background) in enumerate(row_a): 
             char_style = set(char_style)
@@ -36,9 +31,20 @@ class Game:
             attrs = char_style + [get_color(foreground, background)]
             window.chgat(row, col, 1, reduce(lambda a, b: a | b, attrs)) 
 
-        if "HP:" in row_c:
+    def _redraw_row(self, window, row):
+        """
+        Draw a single game-row in the curses display window. This means writing
+        the text from the in-memory terminal out and setting the color/style
+        attributes appropriately.
+        """
+        row_str = self.term.display[row].encode(self.code)
+
+        self._write_text(window, row, row_str)
+        self._write_attrs(window, row)
+
+        if "HP:" in row_str:
             # Highlight health depending on much much is left.
-            match = re.search("HP:(\\d+)\\((\\d+)\\)", row_c)
+            match = re.search("HP:(\\d+)\\((\\d+)\\)", row_str)
             if match is not None:
                 hp, hp_max = match.groups()
                 ratio = float(hp) / float(hp_max)
