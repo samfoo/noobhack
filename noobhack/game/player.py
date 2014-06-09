@@ -16,16 +16,16 @@ class Player:
         return d
 
     def listen(self):
-        self.events.listen("status", self._status_handler)
-        self.events.listen("intrinsic", self._intrinsic_handler)
+        self.events.listen("status-changed", self._status_changed)
+        self.events.listen("intrinsic-changed", self._intrinsic_changed)
 
-    def _intrinsic_handler(self, event, name, value):
+    def _intrinsic_changed(self, event, name, value):
         if name in self.intrinsics and value == False:
             self.intrinsics.remove(name)
         elif name not in self.intrinsics and value == True:
             self.intrinsics.add(name)
 
-    def _status_handler(self, event, name, value):
+    def _status_changed(self, event, name, value):
         if name in self.status and value == False:
             self.status.remove(name)
         elif name not in self.status and value == True:

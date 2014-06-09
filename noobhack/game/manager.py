@@ -37,29 +37,29 @@ class Manager:
         """
         return False
 
-    def _dispatch_level_feature_events(self, data):
+    def _level_feature_events(self, data):
         match = re.search("There is an altar to .* \\((\\w+)\\) here.", data)
         if match is not None:
-            self.events.dispatch("level-feature", "altar (%s)" % match.groups()[0])
+            self.events.dispatch("feature-found", "altar (%s)" % match.groups()[0])
 
         match = re.search("a (large box)|(chest).", data)
         if match is not None:
-            self.events.dispatch("level-feature", "chest")
+            self.events.dispatch("feature-found", "chest")
 
         for feature, messages in sounds.messages.iteritems():
             for message in messages:
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    self.events.dispatch("level-feature", feature)
+                    self.events.dispatch("feature-found", feature)
 
-    def _dispatch_intrinsic_events(self, data):
+    def _intrinsic_events(self, data):
         for name, messages in intrinsics.messages.iteritems():
             for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    self.events.dispatch("intrinsic", name, value)
+                    self.events.dispatch("intrinsic-changed", name, value)
 
-    def _dispatch_status_events(self, data):
+    def _status_events(self, data):
         """
         Check the output stream for any messages that might indicate a status
         change event. If such a message is found, then dispatch a status event
@@ -70,7 +70,7 @@ class Manager:
             for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    self.events.dispatch("status", name, value)
+                    self.events.dispatch("status-changed", name, value)
 
     def _content(self):
         return [line.translate(ibm) for line
@@ -86,12 +86,12 @@ class Manager:
                 break
         return line
 
-    def _dispatch_branch_change_event(self):
+    def _branch_change_event(self, data):
         level = [line.translate(ibm) for line in self.term.display]
         if 6 <= self.dlvl <= 10 and dungeon.looks_like_sokoban(level):
             # If the player arrived at a level that looks like sokoban, she's
             # definitely in sokoban.
-            self.events.dispatch("branch-change", "sokoban")
+            self.events.dispatch("branch-changed", "sokoban")
         elif self.last_move == "down" and 3 <= self.dlvl <= 6 and \
            dungeon.looks_like_mines(level):
             # The only entrace to the mines is between levels 3 and 5 and
@@ -99,9 +99,9 @@ class Manager:
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
             # however is instantly identifiable.
-            self.events.dispatch("branch-change", "mines")
+            self.events.dispatch("branch-changed", "mines")
 
-    def _dispatch_level_change_event(self):
+    def _level_change_event(self, data):
         line = self._get_last_line()
         match = re.search("Dlvl:(\\d+)", line)
         if match is not None:
@@ -114,7 +114,7 @@ class Manager:
 
                 self.dlvl = dlvl
                 self.events.dispatch(
-                    "level-change", dlvl,
+                    "level-changed", dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
                 return
@@ -129,7 +129,7 @@ class Manager:
                 self.events.dispatch("branch-port", "quest")
             else:
                 self.events.dispatch(
-                    "level-change", self.dlvl,
+                    "level-changed", self.dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
             return
@@ -139,19 +139,19 @@ class Manager:
             self.events.dispatch("branch-port", "ludios")
             return
 
-    def _dispatch_level_teleport_event(self, data):
+    def _level_teleport_event(self, data):
         for message in dungeon.messages["level-teleport"]:
             match = re.search(message, data)
             if match is not None:
-                self.events.dispatch("level-teleport")
+                self.events.dispatch("level-teleported")
 
-    def _dispatch_trap_door_event(self, data):
+    def _trap_door_event(self, data):
         for message in dungeon.messages["trap-door"]:
             match = re.search(message, data)
             if match is not None:
-                self.events.dispatch("trap-door")
+                self.events.dispatch("trap-door-fell")
 
-    def _dispatch_turn_change_event(self):
+    def _turn_change_event(self, data):
         """
         Dispatch an even each time a turn advances.
         """
@@ -164,18 +164,18 @@ class Manager:
                 self.turn = turn
                 self.events.dispatch("turn", self.turn)
 
-    def _dispatch_shop_entered_event(self, data):
+    def _shop_entered_event(self, data):
         match = re.search(shops.entrance, data, re.I | re.M)
         if match is not None:
             shop_type = match.groups()[1]
             for t, _ in shops.types.iteritems():
                 match = re.search(t, shop_type, re.I)
                 if match is not None:
-                    self.events.dispatch("shop-type", t)
+                    self.events.dispatch("shop-entered", t)
 
-    def _dispatch_move_event(self):
+    def _move_event(self, data):
         if self.cursor_is_on_player():
-            self.events.dispatch("move", self.term.cursor())
+            self.events.dispatch("moved", self.term.cursor())
 
     def cursor_is_on_player(self):
         """ Return whether or not the cursor is currently on the player. """
@@ -205,19 +205,15 @@ class Manager:
         self.dungeon.listen()
 
     def process(self, data):
-        """
-        Callback attached to the output proxy.
-        """
-
-        self._dispatch_status_events(data)
-        self._dispatch_intrinsic_events(data)
-        self._dispatch_turn_change_event()
-        self._dispatch_trap_door_event(data)
-        self._dispatch_level_change_event()
-        self._dispatch_level_feature_events(data)
-        self._dispatch_branch_change_event()
-        self._dispatch_shop_entered_event(data)
-        self._dispatch_move_event()
+        self._status_events(data)
+        self._intrinsic_events(data)
+        self._turn_change_event(data)
+        self._trap_door_event(data)
+        self._level_change_event(data)
+        self._level_feature_events(data)
+        self._branch_change_event(data)
+        self._shop_entered_event(data)
+        self._move_event(data)
 
         if "--More--" not in self.term.display[self.term.cursor()[1]]:
             self.prev_cursor = self.term.cursor()

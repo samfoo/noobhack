@@ -156,29 +156,23 @@ class Dungeon:
         return d
 
     def listen(self):
-        self.events.listen("level-change",
-                                      self._level_change_handler)
-        self.events.listen("branch-change",
-                                      self._branch_change_handler)
-        self.events.listen("level-feature",
-                                      self._level_feature_handler)
-        self.events.listen("shop-type",
-                                      self._shop_type_handler)
-        self.events.listen("level-teleport",
-                                      self._level_teleport_handler)
-        self.events.listen("trap-door",
-                                      self._level_teleport_handler)
-        self.events.listen("move", self._map_move_handler)
+        self.events.listen("level-changed", self._level_changed)
+        self.events.listen("branch-changed", self._branch_changed)
+        self.events.listen("feature-found", self._feature_found)
+        self.events.listen("shop-entered", self._shop_entered)
+        self.events.listen("level-teleported", self._level_teleported)
+        self.events.listen("trap-door-fell", self._level_teleported)
+        self.events.listen("moved", self._moved)
 
-    def _map_move_handler(self, _, cursor):
+    def _moved(self, _, cursor):
         self.graph.move(*cursor)
 
-    def _shop_type_handler(self, _, shop_type):
+    def _shop_entered(self, _, shop_type):
         if "shop" not in self.current_level().features:
             self.current_level().features.add("shop")
         self.current_level().shops.add(shops.types[shop_type])
 
-    def _branch_change_handler(self, _, branch):
+    def _branch_changed(self, _, branch):
         # I'm really reluctant to put logic in here, beyond just a basic event
         # handler. However, until Brain is refactored into some more meaningful
         # structure, there's a couple edge cases where a level can be detected
@@ -194,13 +188,13 @@ class Dungeon:
         else:
             self.graph.change_branch_to(branch)
 
-    def _level_feature_handler(self, _, feature):
+    def _feature_found(self, _, feature):
         self.current_level().features.add(feature)
 
-    def _level_teleport_handler(self, _):
+    def _level_teleported(self, _):
         self.went_through_lvl_tel = True
 
-    def _level_change_handler(self, _, level, from_pos, to_pos):
+    def _level_changed(self, _, level, from_pos, to_pos):
         if self.level == level:
             # This seems like it's probably an error. The brain, or whoever is
             # doing the even dispatching should know not to dispatch a level
