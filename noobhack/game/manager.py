@@ -23,14 +23,6 @@ class Manager:
         self.player.listen()
         self.dungeon.listen()
 
-    def charisma(self):
-        """ Return the player's current charisma """
-        line = self._content()[-2]
-        match = re.search("Ch:(\\d+)", line)
-        if match is not None:
-            return int(match.groups()[0])
-        return None
-
     def sucker(self):
         """
         Return whether or not the player is considered a 'sucker'. A level 14

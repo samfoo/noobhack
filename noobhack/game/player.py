@@ -13,6 +13,24 @@ class Player:
 
         self.events = events
 
+    def intelligence(self):
+        return self.stats["In"]
+
+    def charisma(self):
+        return self.stats["Ch"]
+
+    def strength(self):
+        return self.stats["St"]
+
+    def wisdom(self):
+        return self.stats["Wi"]
+
+    def dexterity(self):
+        return self.stats["Dx"]
+
+    def constitution(self):
+        return self.stats["Co"]
+
     def __getstate__(self):
         d = self.__dict__.copy()
         del d['events']
