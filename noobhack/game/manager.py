@@ -209,7 +209,7 @@ class Manager:
 
     def _parse_stats(self, data):
         results = {}
-        for st in ["Ch", "St", "Dx", "Co", "Wi"]:
+        for st in ["Ch", "St", "Dx", "Co", "Wi", "In"]:
             match = re.search("%s:(\\d+)" % st, data)
             if match is not None:
                 results[st] = int(match.groups()[0])

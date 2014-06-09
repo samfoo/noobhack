@@ -4,7 +4,7 @@ from noobhack.game.events import Dispatcher
 from noobhack.game.manager import Manager
 
 stats = u"Sam the Evoker            St:10 Dx:15 Co:11 In:17 Wi:12 Ch:10  Neutral"
-stats_dict = {"St": 10, "Dx": 15, "Co": 11, "Wi": 12, "Ch": 10}
+stats_dict = {"In": 17, "St": 10, "Dx": 15, "Co": 11, "Wi": 12, "Ch": 10}
 
 def mock_proxy():
     return flexmock(register=lambda _: None)
