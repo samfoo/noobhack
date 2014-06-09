@@ -1,5 +1,3 @@
-from noobhack.game import events
-
 class Player:
     """
     The player keeps track of various player states that are helpful to know
@@ -7,13 +5,19 @@ class Player:
     information than we might be able to infer about it.
     """
 
-    def __init__(self):
-        self.status = set() 
+    def __init__(self, events):
+        self.status = set()
         self.intrinsics = set()
+        self.events = events
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['events']
+        return d
 
     def listen(self):
-        events.dispatcher.add_event_listener("status", self._status_handler)
-        events.dispatcher.add_event_listener("intrinsic", self._intrinsic_handler)
+        self.events.add_event_listener("status", self._status_handler)
+        self.events.add_event_listener("intrinsic", self._intrinsic_handler)
 
     def _intrinsic_handler(self, event, name, value):
         if name in self.intrinsics and value == False:

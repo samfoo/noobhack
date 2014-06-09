@@ -38,5 +38,3 @@ class Dispatcher:
 
         for listener in self.listeners.get(event, []):
             listener(event, *args)
-
-dispatcher = Dispatcher()

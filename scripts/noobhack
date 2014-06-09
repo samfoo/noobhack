@@ -11,7 +11,7 @@ import optparse
 import vt102
 
 from noobhack import telnet, process, proxy
-from noobhack.game import manager, save
+from noobhack.game import manager, save, events
 
 from noobhack.ui.game import *
 from noobhack.ui.helper import *
@@ -162,7 +162,10 @@ class Noobhack:
             self.output_proxy.unregister(self._quit_or_died_checker)
 
     def _start(self):
-        self.manager = manager.Manager(self.term, self.output_proxy, self.input_proxy)
+        self.manager = manager.Manager(self.term,
+                                       self.output_proxy,
+                                       self.input_proxy,
+                                       events.Dispatcher())
 
         if self.reloading:
             self.manager.load(self.save_file)

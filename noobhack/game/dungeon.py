@@ -7,12 +7,10 @@ are, etc.
 
 import re
 
-from noobhack.game import shops 
+from noobhack.game import shops
 
 from noobhack.game.mapping import Map
 from noobhack.game.mapping import Level
-
-from noobhack.game.events import dispatcher
 
 messages = {
     "trap-door": set((
@@ -30,7 +28,7 @@ messages = {
 def looks_like_sokoban(display):
     """
     Sokoban is a lot easier than the mines. There's no teleporting and we know
-    exactly what the first level looks like (though there are two variations 
+    exactly what the first level looks like (though there are two variations
     and it's all revealed at once.
 
     Easy peasy.
@@ -70,22 +68,22 @@ def looks_like_sokoban(display):
         sokoban = identify(second)
 
     return sokoban
-            
+
 def looks_like_mines(display):
     """
     Gnomish Mines:
-    
+
     Since we don't get a message about being in the mines, we have to
     guess whether we're in the mines or not. There are some features
     unique to the mines that we can use to make a pretty educated
     guess that we're there. Easiest is that the walls are typically irregular
     in the mines:
-    
+
     e.g.
-    
+
          --   or  --   or  --    or  --
         --         --        --        --
-    
+
     Would indicate that we're in the mines. The other thing that could indicate
     that it's the mines is passageways that are only one square wide.
 
@@ -102,7 +100,7 @@ def looks_like_mines(display):
         found = []
         i = 0
         try:
-            while True: 
+            while True:
                 occurance = row.index("--", i)
                 found.append(occurance)
                 i = occurance + 1
@@ -146,25 +144,31 @@ class Dungeon:
     mean, and probably some other stuff that I'll think of in the future.
     """
 
-    def __init__(self):
+    def __init__(self, events):
         self.graph = Map(Level(1), 0, 0)
         self.level = 1
         self.went_through_lvl_tel = False
+        self.events = events
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['events']
+        return d
 
     def listen(self):
-        dispatcher.add_event_listener("level-change", 
+        self.events.add_event_listener("level-change",
                                       self._level_change_handler)
-        dispatcher.add_event_listener("branch-change",
+        self.events.add_event_listener("branch-change",
                                       self._branch_change_handler)
-        dispatcher.add_event_listener("level-feature",
+        self.events.add_event_listener("level-feature",
                                       self._level_feature_handler)
-        dispatcher.add_event_listener("shop-type",
+        self.events.add_event_listener("shop-type",
                                       self._shop_type_handler)
-        dispatcher.add_event_listener("level-teleport",
+        self.events.add_event_listener("level-teleport",
                                       self._level_teleport_handler)
-        dispatcher.add_event_listener("trap-door", 
+        self.events.add_event_listener("trap-door",
                                       self._level_teleport_handler)
-        dispatcher.add_event_listener("move", self._map_move_handler)
+        self.events.add_event_listener("move", self._map_move_handler)
 
     def _map_move_handler(self, _, cursor):
         self.graph.move(*cursor)
@@ -172,7 +176,7 @@ class Dungeon:
     def _shop_type_handler(self, _, shop_type):
         if "shop" not in self.current_level().features:
             self.current_level().features.add("shop")
-        self.current_level().shops.add(shops.types[shop_type]) 
+        self.current_level().shops.add(shops.types[shop_type])
 
     def _branch_change_handler(self, _, branch):
         # I'm really reluctant to put logic in here, beyond just a basic event
@@ -180,7 +184,7 @@ class Dungeon:
         # structure, there's a couple edge cases where a level can be detected
         # as "mines" even though it's clearly not the mines.
         #
-        # Specifically: When in the upper levels of sokoban and traveling 
+        # Specifically: When in the upper levels of sokoban and traveling
         # downward. Mines obviously only exists off of "main" or "not sure", it
         # can never come out of "sokoban". Enforcing that here is the easiest
         # way to fix weird branching craziness.
@@ -194,7 +198,7 @@ class Dungeon:
         self.current_level().features.add(feature)
 
     def _level_teleport_handler(self, _):
-        self.went_through_lvl_tel = True 
+        self.went_through_lvl_tel = True
 
     def _level_change_handler(self, _, level, from_pos, to_pos):
         if self.level == level:

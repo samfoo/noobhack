@@ -1,5 +1,4 @@
 from noobhack.game.dungeon import Dungeon, Level, Map, looks_like_sokoban, looks_like_mines
-from noobhack.game.events import dispatcher
 
 def test_sokoban_a():
     display = [

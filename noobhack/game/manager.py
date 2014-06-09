@@ -2,10 +2,9 @@ import re
 
 from noobhack.game.graphics import ibm
 from noobhack.game import shops, status, intrinsics, sounds, dungeon, save, player
-from noobhack.game.events import dispatcher as event
 
 class Manager:
-    def __init__(self, term, output_proxy, input_proxy):
+    def __init__(self, term, output_proxy, input_proxy, events):
         self.term = term
         output_proxy.register(self.process)
 
@@ -13,9 +12,13 @@ class Manager:
         self.turn = 0
         self.dlvl = 0
         self.prev_cursor = (0, 0)
+        self.events = events
 
-        self.player = player.Player()
-        self.dungeon = dungeon.Dungeon()
+        self.player = player.Player(self.events)
+        self.dungeon = dungeon.Dungeon(self.events)
+
+        self.player.listen()
+        self.dungeon.listen()
 
     def charisma(self):
         """ Return the player's current charisma """
@@ -37,24 +40,24 @@ class Manager:
     def _dispatch_level_feature_events(self, data):
         match = re.search("There is an altar to .* \\((\\w+)\\) here.", data)
         if match is not None:
-            event.dispatch("level-feature", "altar (%s)" % match.groups()[0])
+            self.events.dispatch("level-feature", "altar (%s)" % match.groups()[0])
 
         match = re.search("a (large box)|(chest).", data)
         if match is not None:
-            event.dispatch("level-feature", "chest")
+            self.events.dispatch("level-feature", "chest")
 
         for feature, messages in sounds.messages.iteritems():
             for message in messages:
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    event.dispatch("level-feature", feature)
+                    self.events.dispatch("level-feature", feature)
 
     def _dispatch_intrinsic_events(self, data):
         for name, messages in intrinsics.messages.iteritems():
             for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    event.dispatch("intrinsic", name, value)
+                    self.events.dispatch("intrinsic", name, value)
 
     def _dispatch_status_events(self, data):
         """
@@ -67,7 +70,7 @@ class Manager:
             for message, value in messages.iteritems():
                 match = re.search(message, data, re.I | re.M)
                 if match is not None:
-                    event.dispatch("status", name, value)
+                    self.events.dispatch("status", name, value)
 
     def _content(self):
         return [line.translate(ibm) for line
@@ -88,7 +91,7 @@ class Manager:
         if 6 <= self.dlvl <= 10 and dungeon.looks_like_sokoban(level):
             # If the player arrived at a level that looks like sokoban, she's
             # definitely in sokoban.
-            event.dispatch("branch-change", "sokoban")
+            self.events.dispatch("branch-change", "sokoban")
         elif self.last_move == "down" and 3 <= self.dlvl <= 6 and \
            dungeon.looks_like_mines(level):
             # The only entrace to the mines is between levels 3 and 5 and
@@ -96,7 +99,7 @@ class Manager:
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
             # however is instantly identifiable.
-            event.dispatch("branch-change", "mines")
+            self.events.dispatch("branch-change", "mines")
 
     def _dispatch_level_change_event(self):
         line = self._get_last_line()
@@ -110,7 +113,7 @@ class Manager:
                     self.last_move = "down"
 
                 self.dlvl = dlvl
-                event.dispatch(
+                self.events.dispatch(
                     "level-change", dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
@@ -123,9 +126,9 @@ class Manager:
             dlvl = int(match.groups()[0])
             self.dlvl = dlvl + self.dlvl - 1
             if dlvl == 1:
-                event.dispatch("branch-port", "quest")
+                self.events.dispatch("branch-port", "quest")
             else:
-                event.dispatch(
+                self.events.dispatch(
                     "level-change", self.dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
@@ -133,20 +136,20 @@ class Manager:
 
         match = re.search("Fort Ludios", line)
         if match is not None:
-            event.dispatch("branch-port", "ludios")
+            self.events.dispatch("branch-port", "ludios")
             return
 
     def _dispatch_level_teleport_event(self, data):
         for message in dungeon.messages["level-teleport"]:
             match = re.search(message, data)
             if match is not None:
-                event.dispatch("level-teleport")
+                self.events.dispatch("level-teleport")
 
     def _dispatch_trap_door_event(self, data):
         for message in dungeon.messages["trap-door"]:
             match = re.search(message, data)
             if match is not None:
-                event.dispatch("trap-door")
+                self.events.dispatch("trap-door")
 
     def _dispatch_turn_change_event(self):
         """
@@ -159,7 +162,7 @@ class Manager:
             turn = int(match.groups()[0])
             if turn != self.turn:
                 self.turn = turn
-                event.dispatch("turn", self.turn)
+                self.events.dispatch("turn", self.turn)
 
     def _dispatch_shop_entered_event(self, data):
         match = re.search(shops.entrance, data, re.I | re.M)
@@ -168,11 +171,11 @@ class Manager:
             for t, _ in shops.types.iteritems():
                 match = re.search(t, shop_type, re.I)
                 if match is not None:
-                    event.dispatch("shop-type", t)
+                    self.events.dispatch("shop-type", t)
 
     def _dispatch_move_event(self):
         if self.cursor_is_on_player():
-            event.dispatch("move", self.term.cursor())
+            self.events.dispatch("move", self.term.cursor())
 
     def cursor_is_on_player(self):
         """ Return whether or not the cursor is currently on the player. """
@@ -195,6 +198,11 @@ class Manager:
 
     def load(self, save_file):
         self.player, self.dungeon = save.load(save_file)
+        self.player.events = self.events
+        self.dungeon.events = self.events
+
+        self.player.listen()
+        self.dungeon.listen()
 
     def process(self, data):
         """
