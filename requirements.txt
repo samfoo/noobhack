@@ -1,0 +1,4 @@
+flexmock==0.9.7
+nose==1.3.3
+vt102==0.3.3
+wsgiref==0.1.2
