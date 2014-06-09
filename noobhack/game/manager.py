@@ -8,9 +8,6 @@ class Manager:
     def __init__(self, term, output_proxy, input_proxy):
         self.term = term
         output_proxy.register(self.process)
-        # TODO: Fix branchporting. Disable for now, though, since there's a
-        # perf overhead for callbacks.
-        #input_proxy.register(self.monitor)
 
         self.last_move = None
         self.turn = 0
