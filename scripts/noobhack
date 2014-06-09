@@ -13,7 +13,7 @@ import cPickle as pickle
 import vt102 
  
 from noobhack import telnet, process, proxy
-from noobhack.game import player, dungeon, brain
+from noobhack.game import player, dungeon, manager
 
 from noobhack.ui.game import *
 from noobhack.ui.helper import *
@@ -172,8 +172,8 @@ class Noobhack:
         self.player.listen()
         self.dungeon.listen()
 
-        self.brain = brain.Brain(self.term, self.output_proxy, self.input_proxy)
-        self.helper = Helper(self.brain, self.player, self.dungeon)
+        self.manager = manager.Manager(self.term, self.output_proxy, self.input_proxy)
+        self.helper = Helper(self.manager, self.player, self.dungeon)
         self.minimap = Minimap()
 
     def _game_started_checker(self, data):

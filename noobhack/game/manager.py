@@ -1,19 +1,10 @@
-"""
-The brain manages events from the game. Other classes are responsible for 
-consuming and processing those events in an intelligent way.
-"""
-
 import re
 
 from noobhack.game.graphics import ibm
 from noobhack.game import shops, status, intrinsics, sounds, dungeon
 from noobhack.game.events import dispatcher as event
 
-class Brain:
-    """
-    GrraaAAaaaAaaaa... braaaAAaaains...
-    """
-
+class Manager:
     def __init__(self, term, output_proxy, input_proxy):
         self.term = term
         output_proxy.register(self.process)
