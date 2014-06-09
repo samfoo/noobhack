@@ -8,12 +8,10 @@ import curses
 import locale
 import optparse 
 
-import cPickle as pickle
-
 import vt102 
- 
+
 from noobhack import telnet, process, proxy
-from noobhack.game import player, dungeon, manager
+from noobhack.game import player, dungeon, manager, save
 
 from noobhack.ui.game import *
 from noobhack.ui.helper import *
@@ -159,13 +157,13 @@ class Noobhack:
 
         match = re.search("Do you want your possessions identified\\?", data)
         if match is not None:
-            self.delete()
+            save.delete(self.save_file)
             self.playing = False
             self.output_proxy.unregister(self._quit_or_died_checker)
 
     def _start(self):
         if self.reloading:
-            self.player, self.dungeon = self.load()
+            self.player, self.dungeon = save.load(self.save_file)
         else:
             self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
 
@@ -191,36 +189,6 @@ class Noobhack:
         if match is not None:
             self.reloading = True
             self.output_proxy.unregister(self._restore_game_checker)
-
-    def load(self):
-        if os.path.exists(self.save_file):
-            save_file = open(self.save_file, "r")
-            try:
-                return pickle.load(save_file)
-            finally:
-                save_file.close()
-        elif self.options.debug:
-            return player.Player(), dungeon.Dungeon() 
-        else:
-            raise RuntimeError(
-                "NetHack is trying to restore a game file, but noobhack " + 
-                "doesn't have any memory of this game. While noobhack will " +
-                "still work on a game it doesn't know anything about, there " +
-                "will probably be errors. If you'd like to use noobhack, " +
-                "run nethack and quit your current game, then restart " + 
-                "noobhack."
-            )
-
-    def save(self):
-        save_file = open(self.save_file, "w")
-        try:
-            pickle.dump((self.player, self.dungeon), save_file)
-        finally:
-            save_file.close()
-
-    def delete(self):
-        if os.path.exists(self.save_file):
-            os.remove(self.save_file)
 
     def connect_to_game(self):
         """
@@ -284,7 +252,7 @@ class Noobhack:
         window.refresh()
 
         if self.playing:
-            self.save()
+            save.save(self.save_file, self.player, self.dungeon)
 
         # Let's wait until we have something to do...
         try:
