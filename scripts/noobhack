@@ -277,6 +277,7 @@ class Noobhack:
             self.mode = "game"
 
         self.game.redraw(window)
+
         if self.mode == "help":
             self.helper.redraw(window, self.options.crumbs)
 
@@ -286,17 +287,20 @@ class Noobhack:
             self.save()
 
         # Let's wait until we have something to do...
-        available = select.select(
-            [self.nethack.fileno(), sys.stdin.fileno()], [], []
-        )[0]
+        try:
+            available = select.select(
+                [self.nethack.fileno(), sys.stdin.fileno()], [], []
+            )[0]
 
-        if sys.stdin.fileno() in available:
-            # Do our input logic.
-            self.input_proxy.proxy()
+            if sys.stdin.fileno() in available:
+                self.input_proxy.proxy()
 
-        if self.nethack.fileno() in available:
-            # Do our display logic.
-            self.output_proxy.proxy()
+            if self.nethack.fileno() in available:
+                self.output_proxy.proxy()
+
+        except select.error as e:
+            if e[0] != 4:
+                raise
 
     def run(self, window):
         """

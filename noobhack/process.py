@@ -72,7 +72,7 @@ class Local:
         """
 
         # Get the host app's terminal size first.
-        parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'SSSS')
+        parent = fcntl.ioctl(sys.stdin, termios.TIOCGWINSZ, 'HHHH')
         # Now set the child (conduit) app's size properly
         fcntl.ioctl(self.stdin, termios.TIOCSWINSZ, parent)
 
