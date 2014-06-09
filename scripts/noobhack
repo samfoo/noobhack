@@ -136,11 +136,6 @@ class Noobhack:
         # processor with the output proxy.
         self.stream = vt102.stream()
 
-        # For some reason that I can't assertain: curses freaks out and crashes
-        # when you use exactly the number of rows that are available on the
-        # terminal. It seems easiest just to subtract one from the rows and 
-        # deal with it rather than hunt forever trying to figure out what I'm
-        # doing wrong with curses.
         rows, cols = size()
         self.term = vt102.screen((rows, cols), self.options.encoding)
         self.term.attach(self.stream)
