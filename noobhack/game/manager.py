@@ -1,7 +1,7 @@
 import re
 
 from noobhack.game.graphics import ibm
-from noobhack.game import shops, status, intrinsics, sounds, dungeon
+from noobhack.game import shops, status, intrinsics, sounds, dungeon, save, player
 from noobhack.game.events import dispatcher as event
 
 class Manager:
@@ -14,6 +14,9 @@ class Manager:
         self.dlvl = 0
         self.prev_cursor = (0, 0)
 
+        self.player = player.Player()
+        self.dungeon = dungeon.Dungeon()
+
     def charisma(self):
         """ Return the player's current charisma """
         line = self._content()[-2]
@@ -23,10 +26,10 @@ class Manager:
         return None
 
     def sucker(self):
-        """ 
-        Return whether or not the player is considered a 'sucker'. A level 14 
+        """
+        Return whether or not the player is considered a 'sucker'. A level 14
         or lower tourists or anyone wearing a shirt with no armor or cloak over
-        it. Confers a 33% penalty to the price of an object. Necessary when 
+        it. Confers a 33% penalty to the price of an object. Necessary when
         price identifying.
         """
         return False
@@ -67,8 +70,8 @@ class Manager:
                     event.dispatch("status", name, value)
 
     def _content(self):
-        return [line.translate(ibm) for line 
-                in self.term.display 
+        return [line.translate(ibm) for line
+                in self.term.display
                 if len(line.strip()) > 0]
 
     def _get_last_line(self):
@@ -83,16 +86,16 @@ class Manager:
     def _dispatch_branch_change_event(self):
         level = [line.translate(ibm) for line in self.term.display]
         if 6 <= self.dlvl <= 10 and dungeon.looks_like_sokoban(level):
-            # If the player arrived at a level that looks like sokoban, she's 
+            # If the player arrived at a level that looks like sokoban, she's
             # definitely in sokoban.
             event.dispatch("branch-change", "sokoban")
         elif self.last_move == "down" and 3 <= self.dlvl <= 6 and \
-           dungeon.looks_like_mines(level): 
+           dungeon.looks_like_mines(level):
             # The only entrace to the mines is between levels 3 and 5 and
             # the player has to have been traveling down to get there. Also
             # count it if the dlvl didn't change, because it *might* take
             # a couple turns to identify the mines. Sokoban, by it's nature
-            # however is instantly identifiable. 
+            # however is instantly identifiable.
             event.dispatch("branch-change", "mines")
 
     def _dispatch_level_change_event(self):
@@ -108,10 +111,10 @@ class Manager:
 
                 self.dlvl = dlvl
                 event.dispatch(
-                    "level-change", dlvl, 
+                    "level-change", dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
-                return 
+                return
 
         # Couldn't find the dlvl line... this means we're somewhere outside
         # of the dungeon. Either in the end game, ft. ludios or in your quest.
@@ -123,10 +126,10 @@ class Manager:
                 event.dispatch("branch-port", "quest")
             else:
                 event.dispatch(
-                    "level-change", self.dlvl, 
+                    "level-change", self.dlvl,
                     self.prev_cursor, self.term.cursor()
                 )
-            return 
+            return
 
         match = re.search("Fort Ludios", line)
         if match is not None:
@@ -187,6 +190,12 @@ class Manager:
 
         return col
 
+    def save(self, save_file):
+        save.save(save_file, self.player, self.dungeon)
+
+    def load(self, save_file):
+        self.player, self.dungeon = save.load(save_file)
+
     def process(self, data):
         """
         Callback attached to the output proxy.
@@ -201,7 +210,7 @@ class Manager:
         self._dispatch_branch_change_event()
         self._dispatch_shop_entered_event(data)
         self._dispatch_move_event()
-        
+
         if "--More--" not in self.term.display[self.term.cursor()[1]]:
             self.prev_cursor = self.term.cursor()
 

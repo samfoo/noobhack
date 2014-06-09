@@ -14,11 +14,11 @@ class Helper:
     status_width = 12
     level_width = 25 
 
-    def __init__(self, brain, player, dungeon):
-        self.brain = brain
+    def __init__(self, manager):
+        self.manager = manager
 
-        self.player = player
-        self.dungeon = dungeon
+        self.player = manager.player
+        self.dungeon = manager.dungeon
 
     def _get_statuses(self):
         """
@@ -54,9 +54,9 @@ class Helper:
         drawn.
         """
 
-        for i in xrange(len(self.brain.term.display)-1, -1, -1):
+        for i in xrange(len(self.manager.term.display)-1, -1, -1):
             row = i
-            line = self.brain.term.display[i].strip()
+            line = self.manager.term.display[i].strip()
             if len(line) > 0:
                 break
         return row - self._height() - 1
@@ -170,7 +170,7 @@ class Helper:
         return identify_frame
 
     def _things_to_sell_identify(self):
-        line = self.brain.term.display[0]
+        line = self.manager.term.display[0]
         match = re.search(shops.offer, line, re.I)
         if match is not None:
             price = int(match.groups()[0])
@@ -183,7 +183,7 @@ class Helper:
     def _things_to_buy_identify(self):
         # TODO: Make sure that unpaid prices can only ever appear on the first
         # line. I might have to check the second line too.
-        line = self.brain.term.display[0]
+        line = self.manager.term.display[0]
         match = re.search(shops.price, line, re.I)
         if match is not None:
             count = match.groups()[0]
@@ -239,16 +239,16 @@ class Helper:
 
         for crumb in breadcrumbs:
             x, y = crumb
-            if self.brain.char_at(x, y) not in [".", "#", " "]: 
+            if self.manager.char_at(x, y) not in [".", "#", " "]: 
                 # Ignore anything that's not something we can step on.
                 continue
 
-            if self.brain.char_at(x, y) == " ":
+            if self.manager.char_at(x, y) == " ":
                 window.addch(y, x, ".")
 
             window.chgat(y, x, 1, curses.A_BOLD | get_color(curses.COLOR_MAGENTA))
 
-        cur_x, cur_y = self.brain.term.cursor()
+        cur_x, cur_y = self.manager.term.cursor()
         window.move(cur_y, cur_x)
 
     def redraw(self, window, breadcrumbs=False):
@@ -256,18 +256,18 @@ class Helper:
         Repaint the screen with the helper UI.
         """
 
-        if self.brain.cursor_is_on_player() and breadcrumbs:
+        if self.manager.cursor_is_on_player() and breadcrumbs:
             self._breadcrumbs(window)
 
         if self._things_to_buy_identify() is not None:
             item, price = self._things_to_buy_identify()
-            items = shops.buy_identify(self.brain.charisma(), item, price, self.brain.sucker())
+            items = shops.buy_identify(self.manager.charisma(), item, price, self.manager.sucker())
 
             identify_frame = self._identify_box(items)
             identify_frame.overwrite(window)
         elif self._things_to_sell_identify() is not None:
             item, price = self._things_to_sell_identify()
-            items = shops.sell_identify(item, price, self.brain.sucker())
+            items = shops.sell_identify(item, price, self.manager.sucker())
 
             identify_frame = self._identify_box(items)
             identify_frame.overwrite(window)

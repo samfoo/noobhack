@@ -11,7 +11,7 @@ import optparse
 import vt102
 
 from noobhack import telnet, process, proxy
-from noobhack.game import player, dungeon, manager, save
+from noobhack.game import manager, save
 
 from noobhack.ui.game import *
 from noobhack.ui.helper import *
@@ -162,16 +162,12 @@ class Noobhack:
             self.output_proxy.unregister(self._quit_or_died_checker)
 
     def _start(self):
-        if self.reloading:
-            self.player, self.dungeon = save.load(self.save_file)
-        else:
-            self.player, self.dungeon = player.Player(), dungeon.Dungeon()
-
-        self.player.listen()
-        self.dungeon.listen()
-
         self.manager = manager.Manager(self.term, self.output_proxy, self.input_proxy)
-        self.helper = Helper(self.manager, self.player, self.dungeon)
+
+        if self.reloading:
+            self.manager.load(self.save_file)
+
+        self.helper = Helper(self.manager)
         self.minimap = Minimap()
 
     def _game_started_checker(self, data):
@@ -235,7 +231,7 @@ class Noobhack:
     def _game_loop(self, window):
         if self.mode == "map":
             # Map mode handles it's own input.
-            self.minimap.display(self.dungeon.graph, window, self.toggle_map)
+            self.minimap.display(self.manager.dungeon.graph, window, self.toggle_map)
             self.mode = "game"
 
         self.game.redraw(window)
@@ -246,7 +242,7 @@ class Noobhack:
         window.refresh()
 
         if self.playing:
-            save.save(self.save_file, self.player, self.dungeon)
+            self.manager.save(self.save_file)
 
         # Let's wait until we have something to do...
         try:
