@@ -6,9 +6,9 @@ import sys
 import select
 import curses
 import locale
-import optparse 
+import optparse
 
-import vt102 
+import vt102
 
 from noobhack import telnet, process, proxy
 from noobhack.game import player, dungeon, manager, save
@@ -24,7 +24,7 @@ def get_parser():
     )
 
     parser.set_defaults(
-        local=True, 
+        local=True,
         port=23,
         help=False,
         encoding="ascii",
@@ -38,40 +38,40 @@ def get_parser():
                       action="store_true",
                       dest="help")
 
-    parser.add_option("-l", 
-                      "--local", 
-                      help="play a local game [default: %default]", 
-                      action="store_true", 
+    parser.add_option("-l",
+                      "--local",
+                      help="play a local game [default: %default]",
+                      action="store_true",
                       dest="local")
 
-    parser.add_option("-h", 
-                      "--host", 
-                      help="play a remote game on HOST", 
+    parser.add_option("-h",
+                      "--host",
+                      help="play a remote game on HOST",
                       type="string",
                       dest="host")
 
-    parser.add_option("-p", 
-                      "--port", 
-                      help="connect to the remote host on PORT [default: %default]", 
+    parser.add_option("-p",
+                      "--port",
+                      help="connect to the remote host on PORT [default: %default]",
                       type="int",
                       dest="port")
 
-    parser.add_option("-s", 
-                      "--save", 
-                      help="use a specific save file label (if playing multiple games)", 
+    parser.add_option("-s",
+                      "--save",
+                      help="use a specific save file label (if playing multiple games)",
                       type="string",
                       metavar="NAME",
                       dest="save")
 
-    parser.add_option("--crumbs", 
+    parser.add_option("--crumbs",
                       help="display breadcrumbs when the helper overlay is on screen",
                       action="store_true",
                       dest="crumbs")
-    
-    parser.add_option("-e", 
+
+    parser.add_option("-e",
                       "--encoding",
                       help="set the terminal emulator to ENC [default: %default]",
-                      type="string", 
+                      type="string",
                       metavar="ENC",
                       dest="encoding")
 
@@ -103,8 +103,8 @@ def parse_options():
 
 class Noobhack:
     """
-    Manager of the global game state. This runs the main event loop and makes 
-    sure the screen gets updated as necessary.
+    This runs the main event loop and makes sure the screen gets updated as
+    necessary.
     """
 
     noobhack_dir = os.path.expanduser("~/.noobhack")
@@ -124,11 +124,11 @@ class Noobhack:
         self.reloading = False
 
         if not os.path.exists(self.noobhack_dir):
-            os.makedirs(self.noobhack_dir, 0755)
+            os.makedirs(self.noobhack_dir, 0655)
 
-        self.nethack = self.connect_to_game() 
+        self.nethack = self.connect_to_game()
         self.output_proxy = proxy.Output(self.nethack)
-        self.input_proxy = proxy.Input(self.nethack) 
+        self.input_proxy = proxy.Input(self.nethack)
 
         # Create an in-memory terminal screen and register it's stream
         # processor with the output proxy.
@@ -145,7 +145,7 @@ class Noobhack:
         self.output_proxy.register(self._game_started_checker)
         self.output_proxy.register(self._quit_or_died_checker)
 
-        # Register the `toggle` key to open up the interactive nooback 
+        # Register the `toggle` key to open up the interactive nooback
         # assistant.
         self.input_proxy.register(self._toggle)
 
@@ -165,7 +165,7 @@ class Noobhack:
         if self.reloading:
             self.player, self.dungeon = save.load(self.save_file)
         else:
-            self.player, self.dungeon = player.Player(), dungeon.Dungeon() 
+            self.player, self.dungeon = player.Player(), dungeon.Dungeon()
 
         self.player.listen()
         self.dungeon.listen()
@@ -210,7 +210,7 @@ class Noobhack:
             conn.open()
         except IOError, error:
             sys.stderr.write("Unable to open nethack: `%s'\n" % error)
-            raise 
+            raise
 
         return conn
 
@@ -232,16 +232,10 @@ class Noobhack:
             self.mode = "debug"
             return False
 
-    def _game(self, window):
-        """
-        Run the game loop.
-        """
-
+    def _game_loop(self, window):
         if self.mode == "map":
+            # Map mode handles it's own input.
             self.minimap.display(self.dungeon.graph, window, self.toggle_map)
-            # Map mode handles it's own input. Make sure that we don't get
-            # forever stuck in map mode by toggling back out of it when it's
-            # done.
             self.mode = "game"
 
         self.game.redraw(window)
@@ -280,7 +274,7 @@ class Noobhack:
         curses.use_default_colors()
 
         while True:
-            self._game(window)
+            self._game_loop(window)
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
