@@ -9,7 +9,7 @@ class Dispatcher:
     def __init__(self):
         self.listeners = {}
 
-    def add_event_listener(self, event, function):
+    def listen(self, event, function):
         """
         Add an event listener.
 
@@ -20,16 +20,6 @@ class Dispatcher:
             self.listeners[event] = set() 
 
         self.listeners[event].add(function)
-
-    def remove_event_listener(self, event, function):
-        """
-        Remove an event listener.
-
-        :param event: string name of the event
-        """
-
-        if self.listeners.has_key(event):
-            self.listeners[event].remove(function)
 
     def dispatch(self, event, *args):
         """

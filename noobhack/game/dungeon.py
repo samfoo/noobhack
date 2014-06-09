@@ -156,19 +156,19 @@ class Dungeon:
         return d
 
     def listen(self):
-        self.events.add_event_listener("level-change",
+        self.events.listen("level-change",
                                       self._level_change_handler)
-        self.events.add_event_listener("branch-change",
+        self.events.listen("branch-change",
                                       self._branch_change_handler)
-        self.events.add_event_listener("level-feature",
+        self.events.listen("level-feature",
                                       self._level_feature_handler)
-        self.events.add_event_listener("shop-type",
+        self.events.listen("shop-type",
                                       self._shop_type_handler)
-        self.events.add_event_listener("level-teleport",
+        self.events.listen("level-teleport",
                                       self._level_teleport_handler)
-        self.events.add_event_listener("trap-door",
+        self.events.listen("trap-door",
                                       self._level_teleport_handler)
-        self.events.add_event_listener("move", self._map_move_handler)
+        self.events.listen("move", self._map_move_handler)
 
     def _map_move_handler(self, _, cursor):
         self.graph.move(*cursor)

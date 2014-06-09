@@ -16,8 +16,8 @@ class Player:
         return d
 
     def listen(self):
-        self.events.add_event_listener("status", self._status_handler)
-        self.events.add_event_listener("intrinsic", self._intrinsic_handler)
+        self.events.listen("status", self._status_handler)
+        self.events.listen("intrinsic", self._intrinsic_handler)
 
     def _intrinsic_handler(self, event, name, value):
         if name in self.intrinsics and value == False:
