@@ -14,6 +14,9 @@ class Manager:
         self.prev_cursor = (0, 0)
         self.events = events
 
+        self.stats = {"St": None, "Dx": None, "Co": None, "In": None,
+                      "Wi": None, "Ch": None}
+
         self.player = player.Player(self.events)
         self.dungeon = dungeon.Dungeon(self.events)
 
@@ -204,7 +207,29 @@ class Manager:
         self.player.listen()
         self.dungeon.listen()
 
+    def _parse_stats(self, data):
+        results = {}
+        for st in ["Ch", "St", "Dx", "Co", "Wi"]:
+            match = re.search("%s:(\\d+)" % st, data)
+            if match is not None:
+                results[st] = int(match.groups()[0])
+
+        return results
+
+    def _stats_changed_event(self, data):
+        stats = self._parse_stats(data)
+        dicts = [stats, self.stats]
+
+        changes = dict(set.difference(*(set(d.iteritems()) for d in dicts)))
+
+        if len(changes) > 0:
+            self.events.dispatch(
+                "stats-changed",
+                changes
+            )
+
     def process(self, data):
+        self._stats_changed_event(data)
         self._status_events(data)
         self._intrinsic_events(data)
         self._turn_change_event(data)
