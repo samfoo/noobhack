@@ -1,9 +1,8 @@
 # Noobhack 0.4
 
-* Allow generic plugins.
+* Plugin features
     * Should support hooking into events, and redrawing
     * Should support input (As a player, I want to write a pudding farming bot...)
-    * Move HP coloring to a plugin
 * Track spellbook read count
 * Track spell learned turn
 * Monitor pray safety

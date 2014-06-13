@@ -5,7 +5,7 @@ from os import path
 
 PLUGINSPATH = [
     "~/.noobhack/plugins",
-    path.join(path.abspath(__file__), "../plugins")
+    path.join(path.dirname(path.abspath(__file__)), "game/plugins")
 ]
 
 def load_plugin(plugin_path):

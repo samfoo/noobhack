@@ -1,5 +1,5 @@
 import re
-import curses 
+import curses
 import locale
 
 from noobhack.ui.common import styles, colors, get_color
@@ -9,8 +9,9 @@ class Game:
     Draw the game in the terminal.
     """
 
-    def __init__(self, term):
+    def __init__(self, term, plugins):
         self.term = term
+        self.plugins = plugins
         self.code = locale.getpreferredencoding()
 
     def _write_text(self, window, row, row_str):
@@ -23,7 +24,7 @@ class Game:
 
     def _write_attrs(self, window, row):
         row_a = self.term.attributes[row]
-        for col, (char_style, foreground, background) in enumerate(row_a): 
+        for col, (char_style, foreground, background) in enumerate(row_a):
             char_style = set(char_style)
             foreground = colors.get(foreground, -1)
             background = colors.get(background, -1)
@@ -42,29 +43,16 @@ class Game:
         self._write_text(window, row, row_str)
         self._write_attrs(window, row)
 
-        if "HP:" in row_str:
-            # Highlight health depending on much much is left.
-            match = re.search("HP:(\\d+)\\((\\d+)\\)", row_str)
-            if match is not None:
-                hp, hp_max = match.groups()
-                ratio = float(hp) / float(hp_max)
-
-                if ratio <= 0.25:
-                    attrs = [curses.A_BOLD, get_color(curses.COLOR_WHITE, curses.COLOR_RED)]
-                elif ratio <= 0.5:
-                    attrs = [curses.A_BOLD, get_color(curses.COLOR_YELLOW)]
-                else:
-                    attrs = [curses.A_BOLD, get_color(curses.COLOR_GREEN)]
-                attrs = reduce(lambda a, b: a | b, attrs)
-                window.chgat(row, match.start() + 3, match.end() - match.start() - 3, attrs)
-
-
     def redraw(self, window):
         """
         Repaint the screen with the new contents of our terminal emulator...
         """
 
         window.erase()
+
+        for plugin in self.plugins:
+            plugin.redraw(self.term)
+
         for row_index in xrange(len(self.term.display)):
             self._redraw_row(window, row_index)
 

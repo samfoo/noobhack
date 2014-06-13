@@ -34,7 +34,7 @@ def get_color(foreground, background=-1, registered={}):
     Given a foreground and background color pair, return the curses
     attribute. If there isn't a color of that type registered yet, then
     create it.
-    
+
     :param registered: Don't ever pass something in for this. The default
     mutable param as static is overriden as a feature of sorts so that
     a static variable doesn't have to be declared somewhere else.

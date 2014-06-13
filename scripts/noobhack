@@ -10,7 +10,7 @@ import optparse
 
 import vt102
 
-from noobhack import telnet, process, proxy
+from noobhack import telnet, process, proxy, plugins
 from noobhack.game import manager, save, events
 
 from noobhack.ui.game import *
@@ -122,6 +122,7 @@ class Noobhack:
         self.mode = "game"
         self.playing = False
         self.reloading = False
+        self.plugins = plugins.load_plugins()
 
         if not os.path.exists(self.noobhack_dir):
             os.makedirs(self.noobhack_dir, 0655)
@@ -139,7 +140,7 @@ class Noobhack:
         self.term.attach(self.stream)
         self.output_proxy.register(self.stream.process)
 
-        self.game = Game(self.term)
+        self.game = Game(self.term, self.plugins)
 
         self.output_proxy.register(self._restore_game_checker)
         self.output_proxy.register(self._game_started_checker)
