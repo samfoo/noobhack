@@ -265,10 +265,6 @@ class Noobhack:
                 raise
 
     def run(self, window):
-        """
-        Game loop.
-        """
-
         # We prefer to let the console pick the colors for the bg/fg instead of
         # using what curses thinks looks good.
         curses.use_default_colors()
